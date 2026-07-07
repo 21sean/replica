@@ -9,183 +9,272 @@
 </head>
 <body>
 
-<!-- ══════════════════ onboarding (first run) ══════════════════ -->
-<div class="modal-backdrop hidden" id="onboarding">
-  <div class="modal">
-    <!-- step 1: account -->
-    <div class="ob-step" id="obStep1">
-      <div class="modal-title">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
-        <h2>Let's set up your workspace</h2>
-      </div>
-      <label class="field-label" for="obUsername">Choose username</label>
-      <div class="field with-at"><span>@</span><input id="obUsername" spellcheck="false" placeholder="username"></div>
-      <label class="field-label" for="obFullname">Full name</label>
-      <div class="field"><input id="obFullname" spellcheck="false" placeholder="Your name"></div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="obNext1">Next →</button>
-      </div>
-    </div>
-    <!-- step 2: role -->
-    <div class="ob-step hidden" id="obStep2">
-      <div class="modal-title">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
-        <h2>What describes you best?</h2>
-      </div>
-      <p class="modal-sub">If you wear many hats, pick what you do most often.</p>
-      <div class="role-grid" id="roleGrid">
-        <button class="role">Developer</button><button class="role">Product Manager</button><button class="role">Startup Founder</button>
-        <button class="role">Business Owner</button><button class="role">Data Scientist / Analyst</button><button class="role">Designer</button>
-        <button class="role">Marketing and Sales</button><button class="role">Business Operations</button><button class="role">Student</button>
-        <button class="role">Educator / Teacher</button><button class="role">Other</button>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" id="obBack">Back</button>
-        <button class="btn btn-primary" id="obFinish">Next →</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ============ svg sprite ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></symbol>
+    <symbol id="i-chev-d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-arrow-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-7-7 7 7 7"/></symbol>
+    <symbol id="i-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-7 7 7-7 7"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m-7 7 7-7 7 7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5" opacity=".4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 5.8v5.4c0 4.3 2.8 8 7 9.8 4.2-1.8 7-5.5 7-9.8V5.8z"/><path d="m9.3 11.8 2 2 3.6-3.9"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="4" rx="1"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M12 8v13"/><path d="M12 8c-1.5 0-4.5-.5-4.5-2.7C7.5 3.6 9 3 10 3c2 0 2 3 2 5zm0 0c1.5 0 4.5-.5 4.5-2.7C16.5 3.6 15 3 14 3c-2 0-2 3-2 5z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 3h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3v.5h6V17c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.4 5 8.4 4.5 4 4.5v14c4.4 0 6.4.5 8 2 1.6-1.5 3.6-2 8-2v-14c-4.4 0-6.4.5-8 2z"/><path d="M12 6.5v14"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 9.7 9.7 3 12l6.7 2.3L12 21l2.3-6.7L21 12l-6.7-2.3z"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 18.5a4.5 4.5 0 0 0 .4-9A6 6 0 0 0 6.3 8.6a5 5 0 0 0 .7 9.9z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.3M21 3v5h-5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5M19 5l-8 8"/><path d="M19 14v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5m8-10 5 5-5 5"/></symbol>
+    <symbol id="i-term" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 7 5 5-5 5M12 17h7"/></symbol>
+    <symbol id="i-web" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12a4 4 0 0 1 4 4v3a3 3 0 0 1-5.4 1.8L15 16H9l-1.6 1.8A3 3 0 0 1 2 16v-3a4 4 0 0 1 4-4z"/><path d="M8 12v3M6.5 13.5h3M15.5 12.5h.01M17.5 14.5h.01"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4v16h16"/><path d="M8 16v-5m4 5V8m4 8v-3"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="18.5" r="1.7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4m0 4h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5h.01"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2M6.5 7l1 13a2 2 0 0 0 2 1.5h5a2 2 0 0 0 2-1.5l1-13"/><path d="M10 11v6m4-6v6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.5a3.5 3.5 0 0 1 0 6.6M17.5 14.6a6.5 6.5 0 0 1 4 5.4"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 14a8 8 0 1 1 16 0"/><path d="m12 14 3.5-3.5"/><path d="M2.5 19h19"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 14.5h4"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4v6m0 4v6m7-16v2m0 4v10m7-16v10m0 4v2"/><path d="M3 10h4m3-4h4m3 8h4"/></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m14 5 5 5-8.5 8.5a3.54 3.54 0 0 1-5-5z"/><path d="m13 6 3-3a2.1 2.1 0 0 1 3 3l-3 3"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H6a1.5 1.5 0 0 0-1.5 1.5v16A1.5 1.5 0 0 0 6 21.5h12a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 2.5V8h5.5"/></symbol>
+  </defs>
+</svg>
 
-<!-- ══════════════════ settings modal ══════════════════ -->
-<div class="modal-backdrop hidden" id="settingsModal">
-  <div class="modal">
-    <div class="modal-title"><h2>⚙ Settings</h2><button class="icon-btn modal-x" data-close="settingsModal">✕</button></div>
-    <label class="field-label">Username</label>
-    <div class="field with-at"><span>@</span><input id="setUsername" spellcheck="false"></div>
-    <label class="field-label">Full name</label>
-    <div class="field"><input id="setFullname" spellcheck="false"></div>
-    <label class="field-label">Default model</label>
-    <div class="field"><select id="setModel"></select></div>
-    <div class="settings-info" id="settingsInfo"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" id="setSave">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ docs modal ══════════════════ -->
-<div class="modal-backdrop hidden" id="docsModal">
-  <div class="modal modal-wide">
-    <div class="modal-title"><h2>How Replica works</h2><button class="icon-btn modal-x" data-close="docsModal">✕</button></div>
-    <div class="docs">
-      <p><b>Everything is local.</b> The Agent is whatever Ollama model you pick. Projects are plain folders in <code>replica/projects/</code> on your disk.</p>
-      <p><b>Building.</b> Describe what you want on the Home screen. The Agent plans, then writes real files, and you'll see each one land with a ✓. The preview refreshes automatically.</p>
-      <p><b>Iterating.</b> Keep chatting in the project: "make the header sticky", "add dark mode", "fix the bug where…". The Agent sees your current files each turn, including any manual edits you made.</p>
-      <p><b>Code tab.</b> Full editor over the project files. <code>Ctrl+S</code> saves. Your edits become part of the Agent's context.</p>
-      <p><b>Console tab.</b> Run <code>node file.js</code> or <code>python file.py</code> inside the project folder (60s limit).</p>
-      <p><b>Models.</b> Bigger models build better apps. Thinking models (qwen3.6, gemma4) show their reasoning, and you can collapse it with a click. First response after idle can take a while as the model loads into memory.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ app shell ══════════════════ -->
+<!-- ============ app shell ============ -->
 <div class="app" id="app">
   <aside class="sidebar" id="sidebar">
-    <div class="ws-head">
-      <div class="ws-avatar" id="wsAvatar">R</div>
-      <div class="ws-name" id="wsName">Workspace</div>
+    <div class="sb-top">
+      <svg width="20" height="20"><use href="#i-logo"/></svg>
+      <button class="icon-btn" id="btnSearch" title="Search (Ctrl+K)"><svg><use href="#i-search"/></svg></button>
     </div>
-    <button class="side-btn primary-ish" id="btnNew">＋ Create something new</button>
-    <button class="side-btn" id="btnImport">⤓ Import code</button>
+    <button class="ws-switch" id="wsSwitch" aria-haspopup="menu">
+      <span class="ws-avatar" id="wsAvatar">R</span>
+      <span class="ws-name" id="wsName">Workspace</span>
+      <svg><use href="#i-chev-d"/></svg>
+    </button>
+    <button class="sb-btn" id="btnNew"><svg><use href="#i-plus"/></svg> Create something new</button>
+    <button class="sb-btn" id="btnImport"><svg><use href="#i-import"/></svg> Import code or design</button>
     <input type="file" id="importInput" multiple hidden>
-    <nav class="side-nav">
-      <button class="nav-item active" data-view="home"><span class="nv-ic">⌂</span> Home</button>
-      <button class="nav-item" data-view="projects"><span class="nv-ic">▦</span> Projects</button>
-      <button class="nav-item" id="navSettings"><span class="nv-ic">⚙</span> Settings</button>
+    <nav class="sb-nav">
+      <button class="nav-item active" data-view="home"><svg><use href="#i-home"/></svg> Home</button>
+      <button class="nav-item" data-view="projects"><svg><use href="#i-grid"/></svg> Projects</button>
+      <button class="nav-item" data-view="published"><svg><use href="#i-globe"/></svg> Published Projects</button>
+      <button class="nav-item" data-view="integrations"><svg><use href="#i-layers"/></svg> Integrations</button>
+      <button class="nav-item" data-view="security"><svg><use href="#i-shield"/></svg> Security</button>
+      <button class="nav-item" data-view="promotions"><svg><use href="#i-gift"/></svg> Promotions</button>
+      <button class="nav-item" id="navSettings"><svg><use href="#i-gear"/></svg> Settings</button>
     </nav>
-    <div class="side-bottom">
-      <button class="nav-item" id="navDocs"><span class="nv-ic">📖</span> Documentation</button>
-      <a class="nav-item" href="/" style="text-decoration:none"><span class="nv-ic">✦</span> About Replica</a>
-      <div class="ollama-status" id="ollamaStatus"><span class="dot"></span> checking Ollama…</div>
+    <div class="sb-bottom">
+      <button class="nav-item" id="navLearn"><svg><use href="#i-bulb"/></svg> Learn</button>
+      <button class="nav-item" id="navDocs"><svg><use href="#i-book"/></svg> Documentation</button>
+      <div class="plan-box">
+        <div class="plan-title">Your Local Plan</div>
+        <div class="plan-row">
+          <svg><use href="#i-spark"/></svg>
+          <div><div class="pr-name">Agent credits</div><div class="pr-sub">Unlimited, runs on Ollama</div></div>
+        </div>
+        <div class="plan-row">
+          <svg><use href="#i-cloud"/></svg>
+          <div><div class="pr-name">Cloud credits</div><div class="pr-sub">Not needed, all local</div></div>
+        </div>
+        <button class="btn btn-primary btn-sm upgrade-btn" id="btnUpgrade"><svg><use href="#i-plus"/></svg> Upgrade</button>
+      </div>
+      <div class="sb-foot" id="ollamaStatus"><span class="dot"></span><span class="st-text">Checking Ollama</span><a href="/">About</a></div>
     </div>
   </aside>
 
   <main class="main">
-    <!-- ─────────── home ─────────── -->
+    <!-- ============ home ============ -->
     <section class="view" id="view-home">
       <div class="home-center">
         <h1 class="greeting" id="greeting">Hi, what do you want to make?</h1>
         <div class="prompt-box" id="promptBox">
-          <textarea id="homePrompt" rows="1" placeholder="Make a mobile app for…"></textarea>
-          <div class="prompt-row">
-            <select class="model-pill" id="homeModel" title="Model"></select>
-            <button class="send-btn" id="homeSend" title="Start building">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <textarea id="homePrompt" rows="1" placeholder="Make a mobile app for..."></textarea>
+          <div class="prompt-actions">
+            <button class="icon-btn" id="btnAttach" title="Add files"><svg><use href="#i-plus"/></svg></button>
+            <div class="spacer"></div>
+            <button class="select select-ghost" id="homeModel" aria-haspopup="listbox" title="Model">
+              <span class="sel-val">Model</span><svg><use href="#i-chev-d"/></svg>
             </button>
+            <button class="plan-pill" id="planPill" title="Ask the Agent to plan before building"><span class="mini-switch"></span> Plan</button>
+            <button class="icon-btn" id="btnMic" title="Dictate your prompt"><svg><use href="#i-mic"/></svg></button>
+            <button class="send-btn" id="homeSend" title="Start building" disabled><svg><use href="#i-arrow-up"/></svg></button>
           </div>
         </div>
-        <div class="cat-row" id="catRow">
-          <button class="cat" data-p="Build a website for ">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
-            Website</button>
-          <button class="cat" data-p="Make a mobile app for ">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
-            Mobile</button>
-          <button class="cat" data-p="Design a beautiful landing page concept for ">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.8 5.5 21l2-7.5L2 9h7z"/></svg>
-            Design</button>
-          <button class="cat" data-p="Create an interactive animation of ">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg>
-            Animation</button>
-          <button class="cat" data-p="Build a spreadsheet-style app to track ">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
-            Spreadsheet</button>
+        <div class="cat-strip">
+          <button class="cat-arrow" id="catPrev" aria-label="Scroll categories left"><svg><use href="#i-chev-l"/></svg></button>
+          <div class="cat-row" id="catRow">
+            <button class="cat" data-p="Build a website for "><span class="cat-ic"><svg><use href="#i-web"/></svg></span>Website</button>
+            <button class="cat" data-p="Make a mobile app for "><span class="cat-ic"><svg><use href="#i-phone"/></svg></span>Mobile</button>
+            <button class="cat" data-p="Design a beautiful landing page concept for "><span class="cat-ic"><svg><use href="#i-pen"/></svg></span>Design</button>
+            <button class="cat" data-p="Create an interactive animation of "><span class="cat-ic"><svg><use href="#i-play"/></svg></span>Animation</button>
+            <button class="cat" data-p="Build a spreadsheet-style app to track "><span class="cat-ic"><svg><use href="#i-table"/></svg></span>Spreadsheet</button>
+            <button class="cat" data-p="Build a small browser game about "><span class="cat-ic"><svg><use href="#i-game"/></svg></span>Game</button>
+            <button class="cat" data-p="Build a data dashboard for "><span class="cat-ic"><svg><use href="#i-chart"/></svg></span>Dashboard</button>
+            <button class="cat" data-p="Build an internal tool that "><span class="cat-ic"><svg><use href="#i-wrench"/></svg></span>Tool</button>
+          </div>
+          <button class="cat-arrow" id="catNext" aria-label="Scroll categories right"><svg><use href="#i-chev-r"/></svg></button>
         </div>
         <div class="examples">
-          <span class="ex-label">Try an example prompt ↻</span>
-          <div class="ex-row">
-            <button class="ex" data-p="Build a freelance client portal with a project list, invoices table, and a status board">Freelance client portal</button>
-            <button class="ex" data-p="Build a startup analytics dashboard with KPI cards, a revenue chart drawn on canvas, and a signups table">Startup analytics dashboard</button>
-            <button class="ex" data-p="Build a retail sales dashboard with daily sales chart, top products list, and a filterable orders table">Retail sales dashboard</button>
+          <span class="ex-label">Try an example prompt
+            <button class="icon-btn" id="exShuffle" title="Show different examples"><svg><use href="#i-refresh"/></svg></button>
+          </span>
+          <div class="ex-row" id="exRow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ projects ============ -->
+    <section class="view page hidden" id="view-projects">
+      <div class="page-inner">
+        <div class="page-head"><svg><use href="#i-grid"/></svg><h1>Projects</h1></div>
+        <div class="proj-toolbar">
+          <div class="field">
+            <svg><use href="#i-search"/></svg>
+            <input class="input input-sm" id="projSearch" placeholder="Search projects" spellcheck="false">
+          </div>
+          <div class="spacer" style="flex:1"></div>
+          <button class="btn btn-primary btn-sm" id="projNew"><svg><use href="#i-plus"/></svg> Create something new</button>
+        </div>
+        <div class="proj-grid" id="projGrid"></div>
+        <div class="empty hidden" id="projEmpty">
+          <div class="empty-ic"><svg><use href="#i-grid"/></svg></div>
+          <h3>No projects yet</h3>
+          <p>Go to Home and describe what you want to build.<br>The Agent will create the files for you.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ published ============ -->
+    <section class="view page hidden" id="view-published">
+      <div class="page-inner">
+        <div class="page-head"><svg><use href="#i-globe"/></svg><h1>Published Projects</h1></div>
+        <p class="page-sub">Projects you mark as published show up here with a shareable local link. Publishing keeps everything on your machine.</p>
+        <div class="pub-list" id="pubList"></div>
+        <div class="empty hidden" id="pubEmpty">
+          <div class="empty-ic"><svg><use href="#i-globe"/></svg></div>
+          <h3>Nothing published yet</h3>
+          <p>Open a project's menu in Projects and choose Publish<br>to give it a place on this page.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ integrations ============ -->
+    <section class="view page hidden" id="view-integrations">
+      <div class="page-inner">
+        <div class="page-head"><svg><use href="#i-layers"/></svg><h1>Integrations</h1></div>
+        <div class="integ-panel">
+          <div class="integ-icons" id="integIcons"></div>
+          <h2>Connect your favorite services</h2>
+          <p>Connect your apps to powerful services like Stripe, Google Sheets, Twilio, and more. Add MCP servers to extend your Agent's capabilities. Integrations are on the Replica roadmap, everything else already runs locally.</p>
+          <button class="btn btn-secondary" id="integNotify"><svg><use href="#i-plus"/></svg> Request an integration</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ security ============ -->
+    <section class="view page hidden" id="view-security">
+      <div class="page-inner">
+        <div class="page-head"><svg><use href="#i-shield"/></svg><h1>Security</h1></div>
+        <div class="section-title">Dependency scan overview</div>
+        <p class="page-sub" style="margin:0 0 18px">Replica projects are plain files on your disk with no third party packages installed by default, so there is nothing to scan in the background. This overview checks your projects list on every visit.</p>
+        <div class="alert alert-success">
+          <svg><use href="#i-shield"/></svg>
+          <div>
+            <div class="alert-title">No vulnerabilities detected</div>
+            <div class="alert-desc">Your workspace is clean. No security findings were found.</div>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="field">
+            <svg><use href="#i-search"/></svg>
+            <input class="input input-sm" id="secSearch" placeholder="Search by project name" spellcheck="false">
+          </div>
+          <button class="select" id="secSeverity" aria-haspopup="listbox"><span class="sel-val">Severity level</span><svg><use href="#i-chev-d"/></svg></button>
+          <button class="select" id="secPubStatus" aria-haspopup="listbox"><span class="sel-val">Publishing status</span><svg><use href="#i-chev-d"/></svg></button>
+        </div>
+        <p class="result-count" id="secCount">Showing 0 projects</p>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Project</th><th>Vulnerabilities</th><th>Project owner</th><th>Published</th><th>Status</th></tr></thead>
+            <tbody id="secRows"></tbody>
+          </table>
+          <div class="tbl-empty hidden" id="secEmpty">
+            <div class="empty-ic"><svg><use href="#i-shield"/></svg></div>
+            <h3 style="font-size:14.5px;font-weight:600">Your workspace is secure</h3>
+            <p style="font-size:12.5px;color:var(--muted);margin-top:4px">No project dependency vulnerabilities found.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ─────────── projects ─────────── -->
-    <section class="view hidden" id="view-projects">
-      <div class="view-pad">
-        <h1 class="view-title">Projects</h1>
-        <div class="proj-grid" id="projGrid"></div>
-        <div class="empty hidden" id="projEmpty">
-          <div class="empty-ic">▦</div>
-          <p>No projects yet.<br>Go to Home and describe what you want to build.</p>
+    <!-- ============ promotions ============ -->
+    <section class="view page hidden" id="view-promotions">
+      <div class="page-inner">
+        <div class="page-head"><svg><use href="#i-gift"/></svg><h1>Promotions</h1></div>
+        <div class="promo-card">
+          <h2>Replica is free, forever</h2>
+          <p>There is nothing to redeem here. Every feature is already unlocked because the whole product runs on your machine: the Agent is your own Ollama model, projects are folders on your disk, and no usage is metered.</p>
+          <button class="btn btn-primary" id="promoAbout">See how it works</button>
         </div>
       </div>
     </section>
 
-    <!-- ─────────── workspace (IDE) ─────────── -->
+    <!-- ============ workspace (IDE) ============ -->
     <section class="view hidden" id="view-workspace">
       <header class="ws-toolbar">
-        <button class="icon-btn" id="wsBack" title="Back to home">←</button>
+        <button class="icon-btn" id="wsBack" title="Back to projects"><svg><use href="#i-arrow-l"/></svg></button>
         <span class="ws-title" id="wsTitle">Project</span>
-        <select class="model-pill" id="wsModel" title="Model"></select>
         <div class="ws-tools">
-          <button class="icon-btn" id="btnOpenTab" title="Open preview in new tab">↗</button>
+          <button class="select select-ghost" id="wsModel" aria-haspopup="listbox" title="Model">
+            <span class="sel-val">Model</span><svg><use href="#i-chev-d"/></svg>
+          </button>
+          <button class="icon-btn" id="btnOpenTab" title="Open preview in new tab"><svg><use href="#i-ext"/></svg></button>
         </div>
       </header>
       <div class="ws-body">
-        <!-- chat -->
         <div class="chat-pane">
           <div class="chat-scroll" id="chatScroll"></div>
           <div class="chat-input-wrap">
             <div class="chat-input">
-              <textarea id="chatText" rows="1" placeholder="Ask the Agent to build or change something…"></textarea>
-              <button class="send-btn" id="chatSend" title="Send">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-              </button>
-              <button class="send-btn stop hidden" id="chatStop" title="Stop">■</button>
+              <textarea id="chatText" rows="1" placeholder="Ask the Agent to build or change something..."></textarea>
+              <button class="send-btn" id="chatSend" title="Send" disabled><svg><use href="#i-arrow-up"/></svg></button>
+              <button class="send-btn stop hidden" id="chatStop" title="Stop"><svg><use href="#i-stop"/></svg></button>
             </div>
           </div>
         </div>
-        <!-- right panel -->
         <div class="panel-pane">
           <div class="panel-tabs">
-            <button class="ptab active" data-tab="preview">Preview</button>
-            <button class="ptab" data-tab="code">Code</button>
-            <button class="ptab" data-tab="console">Console</button>
-            <button class="icon-btn ptab-refresh" id="btnRefresh" title="Refresh preview">⟳</button>
+            <button class="ptab active" data-tab="preview"><svg><use href="#i-eye"/></svg>Preview</button>
+            <button class="ptab" data-tab="code"><svg><use href="#i-code"/></svg>Code</button>
+            <button class="ptab" data-tab="console"><svg><use href="#i-term"/></svg>Console</button>
+            <button class="icon-btn ptab-refresh" id="btnRefresh" title="Refresh preview"><svg><use href="#i-refresh"/></svg></button>
           </div>
           <div class="panel-body">
             <div class="ptab-view" id="tab-preview"><iframe id="previewFrame" title="Preview" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock"></iframe></div>
@@ -194,17 +283,17 @@
                 <div class="file-col">
                   <div class="file-col-head">
                     <span>Files</span>
-                    <button class="icon-btn" id="btnNewFile" title="New file">＋</button>
+                    <button class="icon-btn" id="btnNewFile" title="New file"><svg><use href="#i-plus"/></svg></button>
                   </div>
                   <div class="file-tree" id="fileTree"></div>
                 </div>
                 <div class="editor-col">
                   <div class="editor-head">
                     <span id="editorPath" class="editor-path">select a file</span>
-                    <span class="editor-dirty hidden" id="editorDirty">●</span>
+                    <span class="editor-dirty hidden" id="editorDirty"></span>
                     <div style="flex:1"></div>
-                    <button class="icon-btn" id="btnDeleteFile" title="Delete file">🗑</button>
-                    <button class="btn btn-small" id="btnSaveFile" title="Ctrl+S">Save</button>
+                    <button class="icon-btn danger" id="btnDeleteFile" title="Delete file" disabled><svg><use href="#i-trash"/></svg></button>
+                    <button class="btn btn-secondary btn-sm" id="btnSaveFile" title="Ctrl+S" disabled>Save</button>
                   </div>
                   <div class="editor-wrap">
                     <pre class="line-nums" id="lineNums">1</pre>
@@ -214,7 +303,7 @@
               </div>
             </div>
             <div class="ptab-view hidden" id="tab-console">
-              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project, e.g.  node script.js   or   python main.py</span></div>
+              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project, e.g.  node script.js  or  python main.py</span></div>
               <div class="console-in">
                 <span class="con-prompt">$</span>
                 <input id="consoleCmd" spellcheck="false" placeholder="node script.js">
@@ -226,6 +315,85 @@
     </section>
   </main>
 </div>
+
+<!-- ============ settings overlay ============ -->
+<div class="settings hidden" id="settings">
+  <div class="set-head">
+    <svg class="gear"><use href="#i-gear"/></svg>
+    <h1>Settings</h1>
+    <button class="icon-btn" id="setClose" title="Close settings"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <div class="set-body">
+    <aside class="set-side" id="setSide"></aside>
+    <div class="set-content"><div class="set-page" id="setPage"></div></div>
+  </div>
+</div>
+
+<!-- ============ onboarding ============ -->
+<div class="dlg-backdrop hidden" id="onboarding">
+  <div class="dlg">
+    <div class="ob-step" id="obStep1">
+      <div class="dlg-head">
+        <svg width="26" height="26"><use href="#i-logo"/></svg>
+        <h2>Let's set up your account</h2>
+      </div>
+      <label class="label" for="obUsername">Choose username</label>
+      <div class="field"><span class="at">@</span><input class="input" id="obUsername" spellcheck="false" autocomplete="off" placeholder="username"></div>
+      <label class="label" for="obFullname">Full name</label>
+      <input class="input" id="obFullname" spellcheck="false" autocomplete="off" placeholder="Your name">
+      <div class="dlg-foot">
+        <button class="btn btn-primary btn-lg" id="obNext1">Next <svg><use href="#i-arrow-r"/></svg></button>
+      </div>
+    </div>
+    <div class="ob-step hidden" id="obStep2">
+      <div class="dlg-head">
+        <svg width="26" height="26"><use href="#i-logo"/></svg>
+        <h2>What describes you best?</h2>
+      </div>
+      <p class="dlg-desc">If you wear many hats, pick what you do most often.</p>
+      <div class="role-grid" id="roleGrid">
+        <button class="role">Developer</button><button class="role">Product Manager</button><button class="role">Startup Founder</button>
+        <button class="role">Business Owner</button><button class="role">Data Scientist / Analyst</button><button class="role">Designer</button>
+        <button class="role">Marketing and Sales</button><button class="role">Business Operations</button><button class="role">Student</button>
+        <button class="role">Educator / Teacher</button><button class="role">Other</button>
+      </div>
+      <div class="dlg-foot" style="justify-content:space-between">
+        <button class="btn btn-secondary btn-lg" id="obBack">Back</button>
+        <button class="btn btn-primary btn-lg" id="obFinish">Next <svg><use href="#i-arrow-r"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ docs dialog ============ -->
+<div class="dlg-backdrop hidden" id="docsModal">
+  <div class="dlg dlg-wide">
+    <div class="dlg-head"><h2>How Replica works</h2><button class="icon-btn" data-close="docsModal"><svg><use href="#i-x"/></svg></button></div>
+    <div class="docs" style="margin-top:10px">
+      <p><b>Everything is local.</b> The Agent is whatever Ollama model you pick. Projects are plain folders in <code>replica/projects/</code> on your disk.</p>
+      <p><b>Building.</b> Describe what you want on the Home screen. The Agent plans, then writes real files, and you will see each one land with a check mark. The preview refreshes automatically.</p>
+      <p><b>Iterating.</b> Keep chatting in the project: make the header sticky, add dark mode, fix that bug. The Agent sees your current files each turn, including manual edits.</p>
+      <p><b>Code tab.</b> Full editor over the project files. <code>Ctrl+S</code> saves. Your edits become part of the Agent's context.</p>
+      <p><b>Console tab.</b> Run <code>node file.js</code> or <code>python file.py</code> inside the project folder, with a 60 second limit.</p>
+      <p><b>Models.</b> Bigger models build better apps. Thinking models show their reasoning, and you can collapse it with a click. The first response after idle can take a while as the model loads into memory.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ command palette ============ -->
+<div class="dlg-backdrop cmdk-backdrop hidden" id="cmdkModal">
+  <div class="cmdk">
+    <div class="cmdk-input">
+      <svg><use href="#i-search"/></svg>
+      <input id="cmdkInput" placeholder="Search projects and actions..." spellcheck="false" autocomplete="off">
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div id="dlgHost"></div>
 
 <script src="/agent.js"></script>
 </body>
