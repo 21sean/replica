@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replica — Build apps and sites with AI, 100% local</title>
+<style>
+  :root{
+    --cream:#FBF7F1; --cream-2:#F3EDE3; --ink:#12141A; --ink-soft:#4A4F58;
+    --navy:#0E1525; --navy-2:#1C2333; --line:#E3DCCE;
+    --orange:#F26207; --orange-soft:#FFE2CE; --blue:#0079F2;
+    --radius:14px;
+    --font:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+    --mono:'Cascadia Code','Consolas',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--cream);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:50;background:rgba(251,247,241,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;gap:28px;height:64px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .logo svg{display:block}
+  .nav-links{display:flex;gap:22px;font-size:14.5px;color:var(--ink-soft);margin-left:8px}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:10px 18px;transition:.15s}
+  .btn-primary{background:var(--orange);color:#fff}
+  .btn-primary:hover{background:#d95500;transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--ink-soft)}
+  .local-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#0a7a3d;background:#e3f5ea;border:1px solid #bfe6cd;border-radius:999px;padding:4px 12px}
+  .local-pill .dot{width:7px;height:7px;border-radius:50%;background:#18a957;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:96px 0 72px;text-align:center;position:relative;overflow:hidden}
+  .hero h1{font-size:clamp(44px,7vw,76px);font-weight:800;letter-spacing:-.035em;line-height:1.04}
+  .hero h1 .accent{color:var(--orange)}
+  .hero p.sub{margin:22px auto 0;max-width:640px;font-size:19px;color:var(--ink-soft)}
+  .prompt-card{margin:40px auto 0;max-width:680px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 18px 50px -22px rgba(18,20,26,.25);padding:18px;text-align:left}
+  .prompt-card textarea{width:100%;border:none;outline:none;resize:none;font-family:inherit;font-size:16.5px;color:var(--ink);background:transparent;min-height:56px}
+  .prompt-card textarea::placeholder{color:#9aa0ab}
+  .prompt-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .prompt-hint{font-size:12.5px;color:#9aa0ab}
+  .send{width:38px;height:38px;border-radius:10px;background:var(--orange);color:#fff;border:none;cursor:pointer;display:grid;place-items:center;transition:.15s}
+  .send:hover{background:#d95500}
+  .chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .chip{font-size:14px;font-weight:600;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;transition:.15s}
+  .chip:hover{border-color:var(--orange);color:var(--orange)}
+
+  /* ---------- section scaffolding ---------- */
+  section{padding:88px 0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
+  h2.title{font-size:clamp(30px,4.4vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-top:12px}
+  p.lede{margin-top:16px;max-width:660px;font-size:17px;color:var(--ink-soft)}
+  .center{text-align:center}.center p.lede{margin-left:auto;margin-right:auto}
+
+  /* ---------- agent demo ---------- */
+  .demo{background:var(--navy);border-radius:20px;padding:28px;margin-top:44px;box-shadow:0 30px 80px -30px rgba(14,21,37,.55)}
+  .demo-window{background:var(--navy-2);border:1px solid #2B3245;border-radius:12px;overflow:hidden;font-family:var(--mono);font-size:13.5px}
+  .demo-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #2B3245}
+  .demo-bar .d{width:11px;height:11px;border-radius:50%}
+  .demo-body{padding:18px 20px;color:#c6cdd5;text-align:left;min-height:230px;white-space:pre-wrap}
+  .demo-body .u{color:#8fd0ff}
+  .demo-body .ok{color:#57d38c}
+  .demo-body .th{color:#8a93a6;font-style:italic}
+  .demo-body .cur{display:inline-block;width:8px;height:15px;background:var(--orange);vertical-align:text-bottom;animation:pulse 1s infinite}
+
+  /* ---------- feature grid ---------- */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s}
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(18,20,26,.3)}
+  .card .icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin-bottom:18px;font-size:21px}
+  .card h3{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .card p{margin-top:8px;font-size:15px;color:var(--ink-soft)}
+  .i-orange{background:var(--orange-soft)} .i-blue{background:#DCEBFF} .i-green{background:#DFF3E7}
+  .i-purple{background:#EBE4FF} .i-yellow{background:#FFF3D1} .i-pink{background:#FFE4EF}
+
+  /* ---------- possibilities (screenshot section) ---------- */
+  .possible{background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .shot{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#e8e3f5,#f5e8e0 55%,#e0eef0)}
+  .shot .inner{margin:42px auto;width:78%;background:var(--navy);border-radius:10px;padding:14px;box-shadow:0 24px 48px -20px rgba(14,21,37,.45)}
+  .shot .row{display:flex;gap:8px;margin-bottom:10px}
+  .shot .pill{height:9px;border-radius:5px;background:#2B3245}
+  .shot .blk{border-radius:7px;background:#1C2333;border:1px solid #2B3245}
+  .caption h3{font-size:18px;font-weight:700;margin-top:20px}
+  .caption p{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
+
+  /* ---------- local-by-design ---------- */
+  .dark{background:var(--navy);color:#F5F9FC}
+  .dark .kicker{color:#FF8A3D}
+  .dark p.lede{color:#9DA2A6}
+  .dark .card{background:var(--navy-2);border-color:#2B3245}
+  .dark .card:hover{box-shadow:0 20px 40px -24px rgba(0,0,0,.6)}
+  .dark .card h3{color:#F5F9FC}
+  .dark .card p{color:#9DA2A6}
+  .dark .card .icon{background:#2B3245}
+  code.k{font-family:var(--mono);font-size:13px;background:#2B3245;color:#8fd0ff;border-radius:6px;padding:2px 8px}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px;counter-reset:step}
+  .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px 24px 24px}
+  .step::before{counter-increment:step;content:counter(step);position:absolute;top:-16px;left:22px;width:34px;height:34px;border-radius:10px;background:var(--orange);color:#fff;font-weight:800;display:grid;place-items:center;font-size:16px}
+  .step h3{font-size:17px;font-weight:700;margin-top:6px}
+  .step p{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
+  .step code{font-family:var(--mono);font-size:12.5px;background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+
+  /* ---------- cta ---------- */
+  .cta{padding:110px 0;text-align:center}
+  .cta h2{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em}
+  .cta p{margin:16px auto 34px;color:var(--ink-soft);font-size:17px;max-width:520px}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;font-size:13.5px;color:var(--ink-soft)}
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  @media(max-width:860px){
+    .grid3,.steps{grid-template-columns:1fr}
+    .nav-links{display:none}
+    section{padding:64px 0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="logo" href="/">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
+      Replica
+    </a>
+    <div class="nav-links">
+      <a href="#agent">Agent</a>
+      <a href="#possibilities">What you can build</a>
+      <a href="#local">Local by design</a>
+      <a href="#start">Getting started</a>
+    </div>
+    <div class="nav-cta">
+      <span class="local-pill"><span class="dot"></span>100% local</span>
+      <a class="btn btn-primary" href="/agent">Open the workspace</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>What will you <span class="accent">build?</span></h1>
+    <p class="sub">Describe your idea and watch an AI agent plan it, code it, and run it — on your own machine, with your own models. No cloud, no account, no credits.</p>
+
+    <div class="prompt-card">
+      <textarea id="heroPrompt" rows="2" placeholder="Build a website for…"></textarea>
+      <div class="prompt-foot">
+        <span class="prompt-hint">Runs on your local Ollama · Enter to start building</span>
+        <button class="send" id="heroSend" title="Start building" aria-label="Start building">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="chips">
+      <button class="chip" data-p="Build a personal portfolio website with a projects grid and contact section">Website</button>
+      <button class="chip" data-p="Make a mobile-style habit tracker app with streaks and weekly stats">Mobile app</button>
+      <button class="chip" data-p="Design a moody landing page concept for a coffee roastery">Design</button>
+      <button class="chip" data-p="Create an animated particle playground I can interact with">Animation</button>
+      <button class="chip" data-p="Build a spreadsheet-style budget tracker with editable cells and totals">Spreadsheet</button>
+    </div>
+  </div>
+</header>
+
+<section id="agent">
+  <div class="wrap center">
+    <span class="kicker">Meet the Agent</span>
+    <h2 class="title">Describe it. The Agent builds it.</h2>
+    <p class="lede">The Agent plans your app, writes every file into a real project on your disk, and streams its progress live — then serves it instantly in the built-in preview.</p>
+
+    <div class="demo">
+      <div class="demo-window">
+        <div class="demo-bar">
+          <span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span>
+          <span style="color:#8a93a6;font-size:12px;margin-left:8px">Replica Agent — retro-arcade-snake</span>
+        </div>
+        <div class="demo-body" id="demoBody"></div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card" style="text-align:left">
+        <div class="icon i-orange">🧠</div>
+        <h3>Plans before it types</h3>
+        <p>Thinking-capable local models reason through your request first. Watch the thought process unfold, or collapse it and just see results.</p>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="icon i-blue">📁</div>
+        <h3>Real files, live on disk</h3>
+        <p>Every file the Agent writes lands in a real project folder you own. Open them in the built-in editor — or in any editor you like.</p>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="icon i-green">▶</div>
+        <h3>Instant preview &amp; console</h3>
+        <p>Web apps render immediately in the preview pane. Scripts run in the console with <b>node</b> or <b>python</b>. Iterate by just asking again.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="possible" id="possibilities">
+  <div class="wrap center">
+    <h2 class="title">From rapidly prototyping ideas to building<br>your own tools, the possibilities are endless</h2>
+    <p class="lede">Replica has everything you need to make building an app a breeze — build &amp; refine your apps by conversing with the Agent. Every project comes with a file workspace, live preview, and a console.</p>
+
+    <div class="grid3">
+      <div>
+        <div class="shot"><div class="inner">
+          <div class="row"><span class="pill" style="width:34%"></span><span class="pill" style="width:14%;background:#F26207"></span></div>
+          <div class="row"><span class="blk" style="width:30%;height:74px"></span><span class="blk" style="width:68%;height:74px"></span></div>
+          <div class="row"><span class="blk" style="width:100%;height:46px"></span></div>
+        </div></div>
+        <div class="caption" style="text-align:left">
+          <h3>Rapid prototyping</h3>
+          <p>Turn an idea into a working demo in one prompt, then refine it turn by turn until it feels right.</p>
+        </div>
+      </div>
+      <div>
+        <div class="shot"><div class="inner">
+          <div class="row"><span class="pill" style="width:20%"></span><span class="pill" style="width:20%"></span><span class="pill" style="width:20%;background:#0079F2"></span></div>
+          <div class="row"><span class="blk" style="width:49%;height:56px"></span><span class="blk" style="width:49%;height:56px"></span></div>
+          <div class="row"><span class="blk" style="width:100%;height:64px"></span></div>
+        </div></div>
+        <div class="caption" style="text-align:left">
+          <h3>Internal tools</h3>
+          <p>Build that perfect little tool you always wanted — dashboards, converters, trackers — and keep it forever.</p>
+        </div>
+      </div>
+      <div>
+        <div class="shot"><div class="inner">
+          <div class="row"><span class="pill" style="width:44%"></span></div>
+          <div class="row"><span class="blk" style="width:32%;height:90px"></span><span class="blk" style="width:32%;height:90px"></span><span class="blk" style="width:32%;height:90px"></span></div>
+          <div class="row"><span class="pill" style="width:60%"></span></div>
+        </div></div>
+        <div class="caption" style="text-align:left">
+          <h3>Personal apps</h3>
+          <p>Games, planners, playgrounds, experiments — apps for you, not for a market. Nothing ever leaves your machine.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="local">
+  <div class="wrap center">
+    <span class="kicker">Local by design</span>
+    <h2 class="title">Powered by your machine</h2>
+    <p class="lede">No accounts. No usage meters. No telemetry. Replica is a single Node server that talks to the Ollama instance you already run.</p>
+
+    <div class="grid3">
+      <div class="card" style="text-align:left">
+        <div class="icon">🦙</div>
+        <h3>Your models</h3>
+        <p>Pick any chat model you've pulled into Ollama and switch mid-project. Thinking models show their reasoning as they work.</p>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="icon">💾</div>
+        <h3>Your files</h3>
+        <p>Projects are plain folders in <code class="k">replica/projects</code>. Back them up, version them, or open them in VS Code anytime.</p>
+      </div>
+      <div class="card" style="text-align:left">
+        <div class="icon">🔌</div>
+        <h3>Works offline</h3>
+        <p>Generated apps use zero CDNs and zero external calls. Pull the network cable — everything still runs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap center">
+    <span class="kicker">Getting started</span>
+    <h2 class="title">Up and running in three steps</h2>
+    <div class="steps">
+      <div class="step" style="text-align:left">
+        <h3>Start Ollama</h3>
+        <p>Make sure Ollama is running with at least one chat model pulled, e.g. <code>ollama pull qwen3.6:35b-a3b-q4_K_M</code></p>
+      </div>
+      <div class="step" style="text-align:left">
+        <h3>Start Replica</h3>
+        <p>From the replica folder run <code>node server.js</code> — no installs, no build step, no dependencies.</p>
+      </div>
+      <div class="step" style="text-align:left">
+        <h3>Build</h3>
+        <p>Open <code>localhost:4747/agent</code>, say what you want to make, and watch it happen.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>What are you waiting for?</h2>
+    <p>Your models are loaded. Your disk is ready. The Agent is listening.</p>
+    <a class="btn btn-primary" style="font-size:17px;padding:14px 28px" href="/agent">Start building →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span class="logo" style="font-size:16px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
+      Replica
+    </span>
+    <span>A personal, local Replit-style workspace. Runs entirely on localhost — nothing to buy, nothing to sync.</span>
+  </div>
+</footer>
+
+<script>
+  // hero prompt → carries the idea into the agent workspace
+  const heroPrompt = document.getElementById('heroPrompt');
+  function go(){
+    const v = heroPrompt.value.trim();
+    location.href = v ? '/agent?prompt=' + encodeURIComponent(v) : '/agent';
+  }
+  document.getElementById('heroSend').addEventListener('click', go);
+  heroPrompt.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
+  });
+  document.querySelectorAll('.chip').forEach(c =>
+    c.addEventListener('click', () => { heroPrompt.value = c.dataset.p; heroPrompt.focus(); }));
+
+  // rotating placeholder, like the real thing
+  const ideas = ['Build a website for…','Make a mobile app for…','Create a game about…','Design a dashboard for…','Animate something that…'];
+  let ii = 0;
+  setInterval(() => { if (!heroPrompt.value) heroPrompt.placeholder = ideas[++ii % ideas.length]; }, 2600);
+
+  // typed agent demo
+  const script = [
+    ['u','> build me a retro arcade snake game with a scoreboard\n\n'],
+    ['th','Thinking: canvas grid, requestAnimationFrame loop, localStorage highscores…\n\n'],
+    ['n',"I'll build a neon-styled snake game with keyboard controls and a persistent scoreboard.\n\n"],
+    ['ok','✓ wrote index.html          1.2 KB\n'],
+    ['ok','✓ wrote style.css           2.8 KB\n'],
+    ['ok','✓ wrote game.js             6.4 KB\n\n'],
+    ['n','Done — arrow keys to steer, high scores persist between runs. Opening preview…']
+  ];
+  const body = document.getElementById('demoBody');
+  let si = 0, ci = 0, out = '';
+  const cls = {u:'u',th:'th',ok:'ok',n:''};
+  function type(){
+    if (si >= script.length){ body.innerHTML = out; return; }
+    const [k, text] = script[si];
+    ci += Math.random() < .3 ? 2 : 1;
+    if (ci >= text.length){ out += span(k, text); si++; ci = 0; }
+    body.innerHTML = out + (si < script.length ? span(script[si][0], script[si][1].slice(0, ci)) : '') + '<span class="cur"></span>';
+    setTimeout(type, si >= script.length ? 0 : (script[si] && script[si][0]==='ok' ? 8 : 22));
+  }
+  function span(k, t){ return cls[k] ? `<span class="${cls[k]}">${t.replace(/</g,'&lt;')}</span>` : t.replace(/</g,'&lt;'); }
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting){ type(); io.disconnect(); } });
+  io.observe(body);
+</script>
+</body>
+</html>
