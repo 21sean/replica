@@ -3,322 +3,574 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Replica — Build apps and sites with AI, 100% local</title>
+<title>Replica: Build apps and sites with AI, 100% local</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/site.css">
 <style>
-  :root{
-    --cream:#FBF7F1; --cream-2:#F3EDE3; --ink:#12141A; --ink-soft:#4A4F58;
-    --navy:#0E1525; --navy-2:#1C2333; --line:#E3DCCE;
-    --orange:#F26207; --orange-soft:#FFE2CE; --blue:#0079F2;
-    --radius:14px;
-    --font:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
-    --mono:'Cascadia Code','Consolas',ui-monospace,monospace;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--cream);color:var(--ink);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased}
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-
-  /* ---------- nav ---------- */
-  nav{position:sticky;top:0;z-index:50;background:rgba(251,247,241,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  .nav-inner{display:flex;align-items:center;gap:28px;height:64px}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.02em}
-  .logo svg{display:block}
-  .nav-links{display:flex;gap:22px;font-size:14.5px;color:var(--ink-soft);margin-left:8px}
-  .nav-links a:hover{color:var(--ink)}
-  .nav-cta{margin-left:auto;display:flex;gap:10px;align-items:center}
-  .btn{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:10px 18px;transition:.15s}
-  .btn-primary{background:var(--orange);color:#fff}
-  .btn-primary:hover{background:#d95500;transform:translateY(-1px)}
-  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-  .btn-ghost:hover{border-color:var(--ink-soft)}
-  .local-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#0a7a3d;background:#e3f5ea;border:1px solid #bfe6cd;border-radius:999px;padding:4px 12px}
-  .local-pill .dot{width:7px;height:7px;border-radius:50%;background:#18a957;animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
   /* ---------- hero ---------- */
-  .hero{padding:96px 0 72px;text-align:center;position:relative;overflow:hidden}
-  .hero h1{font-size:clamp(44px,7vw,76px);font-weight:800;letter-spacing:-.035em;line-height:1.04}
-  .hero h1 .accent{color:var(--orange)}
-  .hero p.sub{margin:22px auto 0;max-width:640px;font-size:19px;color:var(--ink-soft)}
-  .prompt-card{margin:40px auto 0;max-width:680px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 18px 50px -22px rgba(18,20,26,.25);padding:18px;text-align:left}
-  .prompt-card textarea{width:100%;border:none;outline:none;resize:none;font-family:inherit;font-size:16.5px;color:var(--ink);background:transparent;min-height:56px}
-  .prompt-card textarea::placeholder{color:#9aa0ab}
-  .prompt-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-  .prompt-hint{font-size:12.5px;color:#9aa0ab}
-  .send{width:38px;height:38px;border-radius:10px;background:var(--orange);color:#fff;border:none;cursor:pointer;display:grid;place-items:center;transition:.15s}
-  .send:hover{background:#d95500}
-  .chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
-  .chip{font-size:14px;font-weight:600;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;transition:.15s}
-  .chip:hover{border-color:var(--orange);color:var(--orange)}
+  .hero { padding: 88px 0 64px; text-align: center; }
+  .hero .sub { margin-top: 14px; font-size: 14px; color: var(--ink-body); }
 
-  /* ---------- section scaffolding ---------- */
-  section{padding:88px 0}
-  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
-  h2.title{font-size:clamp(30px,4.4vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-top:12px}
-  p.lede{margin-top:16px;max-width:660px;font-size:17px;color:var(--ink-soft)}
-  .center{text-align:center}.center p.lede{margin-left:auto;margin-right:auto}
+  .prompt-shell { position: relative; max-width: 650px; margin: 40px auto 0; }
+  .prompt-shell::before {
+    content: ""; position: absolute; inset: -48px -80px;
+    background: radial-gradient(closest-side, rgba(255,75,0,.14), rgba(255,177,153,.10) 55%, transparent 75%);
+    filter: blur(6px); z-index: 0; opacity: 0; animation: glow-fade-in 1.2s ease .5s forwards;
+  }
+  @keyframes glow-fade-in { to { opacity: 1; } }
+  @keyframes input-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,60,0,0); }
+    40%, 60% { box-shadow: 0 0 8px 4px rgba(255,60,0,.35); }
+  }
+  .prompt-card {
+    position: relative; z-index: 1; text-align: left;
+    background: var(--field);
+    border: 1px solid var(--salmon);
+    border-radius: var(--radius);
+    padding: 14px 14px 10px;
+    animation: input-glow 2.4s ease .7s 1;
+  }
+  .prompt-card textarea {
+    width: 100%; min-height: 30px; border: none; outline: none; resize: none;
+    background: transparent; font-family: inherit; font-size: 14px; color: var(--ink);
+  }
+  .prompt-card textarea::placeholder { color: #9B9C9E; }
+  .prompt-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .attach {
+    width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
+    color: var(--ink-body); display: grid; place-items: center; font-size: 18px;
+  }
+  .attach:hover { background: #E9E7E3; }
+  .send {
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: var(--salmon); color: #fff; display: grid; place-items: center;
+    transition: background .15s ease;
+  }
+  .prompt-card.has-text .send, .send:hover { background: var(--accent-strong); }
 
-  /* ---------- agent demo ---------- */
-  .demo{background:var(--navy);border-radius:20px;padding:28px;margin-top:44px;box-shadow:0 30px 80px -30px rgba(14,21,37,.55)}
-  .demo-window{background:var(--navy-2);border:1px solid #2B3245;border-radius:12px;overflow:hidden;font-family:var(--mono);font-size:13.5px}
-  .demo-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #2B3245}
-  .demo-bar .d{width:11px;height:11px;border-radius:50%}
-  .demo-body{padding:18px 20px;color:#c6cdd5;text-align:left;min-height:230px;white-space:pre-wrap}
-  .demo-body .u{color:#8fd0ff}
-  .demo-body .ok{color:#57d38c}
-  .demo-body .th{color:#8a93a6;font-style:italic}
-  .demo-body .cur{display:inline-block;width:8px;height:15px;background:var(--orange);vertical-align:text-bottom;animation:pulse 1s infinite}
+  /* category carousel */
+  .cats { margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .cat-arrow {
+    width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
+    color: var(--ink-soft); display: grid; place-items: center;
+  }
+  .cat-arrow:hover { background: #ECEAE6; color: var(--ink); }
+  .cat-row { display: flex; gap: 26px; }
+  .cat { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .cat .tile {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--surface-soft); border: 1px solid var(--line);
+    display: grid; place-items: center; color: var(--ink-head);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .cat:hover .tile { transform: translateY(-2px); border-color: var(--salmon); }
+  .cat span { font-size: 12px; color: var(--ink-body); }
 
-  /* ---------- feature grid ---------- */
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px;transition:.2s}
-  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(18,20,26,.3)}
-  .card .icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;margin-bottom:18px;font-size:21px}
-  .card h3{font-size:19px;font-weight:700;letter-spacing:-.01em}
-  .card p{margin-top:8px;font-size:15px;color:var(--ink-soft)}
-  .i-orange{background:var(--orange-soft)} .i-blue{background:#DCEBFF} .i-green{background:#DFF3E7}
-  .i-purple{background:#EBE4FF} .i-yellow{background:#FFF3D1} .i-pink{background:#FFE4EF}
+  .try-row { margin-top: 28px; }
+  .try-label {
+    background: none; border: none; font-size: 12px; color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .try-label:hover { color: var(--ink); }
+  .try-label svg { transition: transform .4s ease; }
+  .try-label.spin svg { transform: rotate(180deg); }
+  .chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .chip {
+    font-size: 13px; color: var(--ink-body);
+    background: #EFECE7; border: none; border-radius: 10px; padding: 8px 14px;
+    transition: background .15s ease;
+  }
+  .chip:hover { background: #E7E3DC; }
 
-  /* ---------- possibilities (screenshot section) ---------- */
-  .possible{background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .shot{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#e8e3f5,#f5e8e0 55%,#e0eef0)}
-  .shot .inner{margin:42px auto;width:78%;background:var(--navy);border-radius:10px;padding:14px;box-shadow:0 24px 48px -20px rgba(14,21,37,.45)}
-  .shot .row{display:flex;gap:8px;margin-bottom:10px}
-  .shot .pill{height:9px;border-radius:5px;background:#2B3245}
-  .shot .blk{border-radius:7px;background:#1C2333;border:1px solid #2B3245}
-  .caption h3{font-size:18px;font-weight:700;margin-top:20px}
-  .caption p{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
+  /* ---------- meet the agent ---------- */
+  .meet { padding: 110px 0 90px; text-align: center; }
+  .meet .sub { margin-top: 10px; font-size: 13px; color: var(--ink-soft); }
+  .collage { max-width: 1000px; margin: 44px auto 0; display: grid; grid-template-columns: repeat(20, 1fr); gap: 18px; text-align: left; }
+  .cg-card { height: 420px; border-radius: var(--radius-lg); padding: 40px; position: relative; overflow: hidden; }
+  .cg-a { grid-column: span 11; border-radius: 999px; background: #FFA88C; padding: 48px 48px 48px 80px; }
+  .cg-a::after {
+    content: ""; position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+    width: 42%; height: 74%;
+    background-image: radial-gradient(#FF8A66 2px, transparent 2.2px);
+    background-size: 14px 14px; border-radius: 999px;
+  }
+  .cg-b { grid-column: span 9; background: var(--greige); }
+  .cg-c { grid-column: span 9; background: var(--dark); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; }
+  .cg-d { grid-column: span 11; border-radius: 999px; background: var(--coral); padding: 48px 48px 48px 96px; display: flex; flex-direction: column; justify-content: center; }
+  .cg-kicker { font-size: 12px; color: rgba(20,15,12,.7); margin-bottom: 10px; }
+  .cg-c .cg-kicker { color: rgba(255,255,255,.55); }
+  .cg-card h3 { font-weight: 400; font-size: clamp(38px, 4.6vw, 60px); letter-spacing: -.05em; line-height: .98; color: var(--dark); }
+  .cg-c h3 { color: #fff; }
+  .cg-card p { margin-top: 16px; font-size: 13px; max-width: 250px; color: rgba(20,15,12,.75); }
+  .cg-c p { color: rgba(255,255,255,.65); }
+  .cg-b p { max-width: 300px; }
+  /* device frames inside dark card */
+  .frames { position: absolute; top: 36px; left: 40px; right: 40px; display: flex; gap: 14px; }
+  .frame { border: 1.4px solid rgba(255,255,255,.4); border-radius: 8px; height: 84px; flex: 1.4; padding: 7px; }
+  .frame.tall { flex: .7; height: 104px; margin-top: -8px; border-radius: 12px; }
+  .frame .bar { height: 4px; width: 55%; border-radius: 2px; background: rgba(255,255,255,.35); }
+  .meet-cta { margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 24px; }
 
-  /* ---------- local-by-design ---------- */
-  .dark{background:var(--navy);color:#F5F9FC}
-  .dark .kicker{color:#FF8A3D}
-  .dark p.lede{color:#9DA2A6}
-  .dark .card{background:var(--navy-2);border-color:#2B3245}
-  .dark .card:hover{box-shadow:0 20px 40px -24px rgba(0,0,0,.6)}
-  .dark .card h3{color:#F5F9FC}
-  .dark .card p{color:#9DA2A6}
-  .dark .card .icon{background:#2B3245}
-  code.k{font-family:var(--mono);font-size:13px;background:#2B3245;color:#8fd0ff;border-radius:6px;padding:2px 8px}
+  /* ---------- platform cards ---------- */
+  .platform { padding: 90px 0 110px; text-align: center; }
+  .plat-grid { margin-top: 44px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: left; }
+  .plat-card { border-radius: var(--radius); padding: 24px; min-height: 604px; display: flex; flex-direction: column; }
+  .plat-card .kicker { font-size: 13px; margin-bottom: 14px; }
+  .plat-card h3 { font-weight: 400; font-size: 29px; letter-spacing: -.035em; line-height: 1.05; color: var(--dark); }
+  .plat-card .art { flex: 1; display: grid; place-items: center; padding: 24px 0; }
+  .plat-card .body { font-size: 13px; line-height: 1.5; }
+  .p1 { background: #F1F0EE; }
+  .p2 { background: var(--greige); }
+  .p3 { background: var(--salmon); }
+  .p4 { background: var(--coral); }
+  .p4 .body { color: rgba(255,255,255,.95); }
+  .cursor-block { display: inline-block; width: .45em; height: .95em; background: var(--dark); vertical-align: baseline; margin-left: 3px; }
 
-  /* ---------- steps ---------- */
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px;counter-reset:step}
-  .step{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px 24px 24px}
-  .step::before{counter-increment:step;content:counter(step);position:absolute;top:-16px;left:22px;width:34px;height:34px;border-radius:10px;background:var(--orange);color:#fff;font-weight:800;display:grid;place-items:center;font-size:16px}
-  .step h3{font-size:17px;font-weight:700;margin-top:6px}
-  .step p{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
-  .step code{font-family:var(--mono);font-size:12.5px;background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+  /* card 1 art: dashed orbit */
+  .orbit { position: relative; width: 100%; max-width: 250px; aspect-ratio: 1; }
+  .orbit .ring { position: absolute; inset: 8%; border: 1.4px dashed var(--accent-strong); border-radius: 50%; }
+  .orbit .say {
+    position: absolute; top: 4%; left: 0;
+    background: #F1F0EE; border: 1.2px solid var(--dark); border-radius: 10px;
+    font-size: 11.5px; padding: 9px 12px; color: var(--ink-body);
+  }
+  .orbit .publish {
+    position: absolute; top: 46%; right: -4%;
+    background: var(--accent-strong); color: #fff; border-radius: 8px;
+    font-size: 12px; font-weight: 500; padding: 8px 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .orbit .agent-chip {
+    position: absolute; bottom: 6%; left: 2%;
+    background: #F1F0EE; border: 1.2px solid var(--dark); border-radius: 9px;
+    font-size: 11.5px; padding: 8px 11px; color: var(--ink-body);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
 
-  /* ---------- cta ---------- */
-  .cta{padding:110px 0;text-align:center}
-  .cta h2{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-.03em}
-  .cta p{margin:16px auto 34px;color:var(--ink-soft);font-size:17px;max-width:520px}
+  /* card 2 art: service stack */
+  .stack-outline { border: 1.6px solid var(--accent-strong); border-radius: 26px; padding: 12px; width: 100%; max-width: 210px; }
+  .stack-outline .svc {
+    border: 1.4px solid var(--dark); border-radius: 13px;
+    font-size: 12.5px; color: var(--ink-body); text-align: center;
+    padding: 13px 0; margin-bottom: 8px; background: transparent;
+  }
+  .stack-outline .svc:last-child { margin-bottom: 0; }
 
-  footer{border-top:1px solid var(--line);padding:34px 0;font-size:13.5px;color:var(--ink-soft)}
-  .foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  /* card 3 art: integration nodes */
+  .nodes { position: relative; width: 100%; max-width: 230px; aspect-ratio: 1.1; }
+  .nodes .hub {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 62px; height: 62px; border-radius: 16px; background: var(--accent-strong);
+    display: grid; place-items: center;
+  }
+  .nodes .sat {
+    position: absolute; width: 42px; height: 42px; border-radius: 12px;
+    background: #FBF8F5; display: grid; place-items: center; color: var(--ink-head);
+  }
+  .nodes .s1 { left: 0; top: 34%; }
+  .nodes .s2 { right: 4%; top: 8%; }
+  .nodes .s3 { right: 10%; bottom: 6%; }
+  .nodes .wire { position: absolute; border: 1px dashed rgba(20,15,12,.5); }
+  .nodes .w1 { left: 46px; top: 50%; width: 18%; border-width: 0 0 1.4px 0; }
+  .nodes .w2 { right: 26%; top: 22%; width: 14%; border-width: 0 0 1.4px 0; transform: rotate(-38deg); }
+  .nodes .w3 { right: 30%; bottom: 26%; width: 14%; border-width: 0 0 1.4px 0; transform: rotate(38deg); }
 
-  @media(max-width:860px){
-    .grid3,.steps{grid-template-columns:1fr}
-    .nav-links{display:none}
-    section{padding:64px 0}
+  /* card 4 art: shield */
+  .shield { color: #fff; }
+
+  /* ---------- testimonials ---------- */
+  .quotes { padding: 40px 0 90px; }
+  .quotes-grid { display: grid; grid-template-columns: 200px 1fr 210px; gap: 20px; align-items: start; }
+  .q-label { background: var(--surface); border-radius: 16px; padding: 20px; }
+  .q-label h3 { font-weight: 400; font-size: 22px; letter-spacing: -.03em; line-height: 1.05; }
+  .q-label p { margin-top: 8px; font-size: 11px; color: var(--ink-soft); }
+  .q-card { background: var(--surface); border-radius: var(--radius-lg); padding: 40px 44px; min-height: 300px; display: flex; flex-direction: column; }
+  .q-card .mark { font-size: 30px; color: var(--ink-soft); line-height: 1; }
+  .q-card blockquote { margin-top: 14px; font-size: 19px; letter-spacing: -.015em; line-height: 1.35; color: var(--ink-body); max-width: 560px; }
+  .q-card footer { margin-top: auto; padding-top: 28px; font-size: 12px; }
+  .q-card footer .who { font-weight: 600; }
+  .q-card footer .role { color: var(--ink-soft); margin-top: 2px; }
+  .q-nav { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; padding-top: 24px; }
+  .q-btn {
+    border: none; background: var(--salmon-soft); border-radius: 22px;
+    width: 150px; padding: 22px 18px; font-size: 11px; color: var(--dark);
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    transition: background .15s ease;
+  }
+  .q-btn:hover { background: var(--salmon); }
+  .q-btn.prev { align-self: flex-start; margin-right: 40px; }
+
+  /* ---------- pricing ---------- */
+  .pricing { padding: 20px 0 90px; }
+  .price-card { background: var(--surface); border-radius: 28px; padding: 48px; }
+  .price-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .price-head .kicker { font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-neutral); border-radius: 999px; padding: 4px; }
+  .toggle button { border: none; background: transparent; border-radius: 999px; font-size: 12px; padding: 6px 14px; color: var(--ink-body); }
+  .toggle button.on { background: var(--surface); box-shadow: 0 1px 3px rgba(14,14,15,.12); }
+  .save-badge { background: var(--accent-strong); color: #fff; font-size: 11px; font-weight: 600; border-radius: 999px; padding: 5px 10px; }
+  .plans { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .plan { border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px; display: flex; flex-direction: column; }
+  .plan.popular { border: 1.6px solid var(--accent-strong); position: relative; }
+  .plan .pop-badge {
+    position: absolute; top: -11px; right: 20px;
+    background: var(--accent-strong); color: #fff; font-size: 10.5px; font-weight: 600;
+    border-radius: 999px; padding: 4px 10px;
+  }
+  .plan h4 { font-size: 16px; font-weight: 500; }
+  .plan .amount { margin-top: 14px; font-size: 40px; letter-spacing: -.045em; font-weight: 400; color: var(--ink-head); }
+  .plan .amount span { font-size: 13px; letter-spacing: 0; color: var(--ink-soft); }
+  .plan ul { list-style: none; margin: 20px 0 26px; }
+  .plan li { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; color: var(--ink-body); margin-bottom: 10px; }
+  .plan li svg { flex: none; margin-top: 2px; color: var(--accent-strong); }
+  .plan .btn { margin-top: auto; justify-content: center; }
+  .price-note { margin-top: 24px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+  /* ---------- final cta ---------- */
+  .cta { padding: 110px 0 130px; text-align: center; }
+  .cta .btn { margin-top: 30px; }
+
+  @media (max-width: 960px) {
+    .collage { grid-template-columns: 1fr; }
+    .cg-a, .cg-b, .cg-c, .cg-d { grid-column: auto; border-radius: var(--radius-lg); padding: 36px; height: auto; min-height: 300px; }
+    .plat-grid { grid-template-columns: 1fr 1fr; }
+    .plat-card { min-height: 520px; }
+    .quotes-grid { grid-template-columns: 1fr; }
+    .q-nav { flex-direction: row; }
+    .q-btn.prev { margin: 0; }
+    .plans { grid-template-columns: 1fr; }
+    .price-head { flex-direction: column; }
+  }
+  @media (max-width: 600px) {
+    .plat-grid { grid-template-columns: 1fr; }
+    .cat-row { flex-wrap: wrap; justify-content: center; }
   }
 </style>
 </head>
 <body>
 
-<nav>
+<nav class="nav" id="nav">
   <div class="wrap nav-inner">
-    <a class="logo" href="/">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
+    <a class="nav-logo" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#FF4B00"/></svg>
       Replica
     </a>
     <div class="nav-links">
-      <a href="#agent">Agent</a>
-      <a href="#possibilities">What you can build</a>
-      <a href="#local">Local by design</a>
-      <a href="#start">Getting started</a>
+      <a href="/#platform">Platform</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/#community">Community</a>
+      <a class="nav-agent" href="/products/agent">Agent <span class="badge">1</span></a>
     </div>
     <div class="nav-cta">
-      <span class="local-pill"><span class="dot"></span>100% local</span>
-      <a class="btn btn-primary" href="/agent">Open the workspace</a>
+      <a class="link-quiet" href="/agent">Open workspace</a>
+      <a class="btn btn-outline" href="/agent">Start building</a>
     </div>
   </div>
 </nav>
 
 <header class="hero">
-  <div class="wrap">
-    <h1>What will you <span class="accent">build?</span></h1>
-    <p class="sub">Describe your idea and watch an AI agent plan it, code it, and run it — on your own machine, with your own models. No cloud, no account, no credits.</p>
+  <div class="wrap-tight">
+    <h1 class="d1 sv in" style="--d:.05s">What will you build?</h1>
+    <p class="sub sv in" style="--d:.15s">Turn ideas into apps in minutes, on your own machine, no cloud needed</p>
 
-    <div class="prompt-card">
-      <textarea id="heroPrompt" rows="2" placeholder="Build a website for…"></textarea>
-      <div class="prompt-foot">
-        <span class="prompt-hint">Runs on your local Ollama · Enter to start building</span>
-        <button class="send" id="heroSend" title="Start building" aria-label="Start building">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-        </button>
+    <div class="prompt-shell sv in" style="--d:.25s">
+      <div class="prompt-card" id="promptCard">
+        <textarea id="heroPrompt" rows="1" placeholder="Make a website for..."></textarea>
+        <div class="prompt-foot">
+          <button class="attach" title="Attach (coming never, it is all local anyway)" aria-label="Attach">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="send" id="heroSend" title="Start building" aria-label="Start building">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="chips">
-      <button class="chip" data-p="Build a personal portfolio website with a projects grid and contact section">Website</button>
-      <button class="chip" data-p="Make a mobile-style habit tracker app with streaks and weekly stats">Mobile app</button>
-      <button class="chip" data-p="Design a moody landing page concept for a coffee roastery">Design</button>
-      <button class="chip" data-p="Create an animated particle playground I can interact with">Animation</button>
-      <button class="chip" data-p="Build a spreadsheet-style budget tracker with editable cells and totals">Spreadsheet</button>
+    <div class="cats sv in" style="--d:.35s">
+      <button class="cat-arrow" id="catPrev" aria-label="Previous">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="cat-row" id="catRow"></div>
+      <button class="cat-arrow" id="catNext" aria-label="Next">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+
+    <div class="try-row sv in" style="--d:.45s">
+      <button class="try-label" id="tryRefresh">
+        Try an example prompt
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.3M21 3v6h-6"/></svg>
+      </button>
+      <div class="chips" id="chipRow"></div>
     </div>
   </div>
 </header>
 
-<section id="agent">
-  <div class="wrap center">
-    <span class="kicker">Meet the Agent</span>
-    <h2 class="title">Describe it. The Agent builds it.</h2>
-    <p class="lede">The Agent plans your app, writes every file into a real project on your disk, and streams its progress live — then serves it instantly in the built-in preview.</p>
+<section class="meet" id="agent">
+  <div class="wrap">
+    <h2 class="d1 sv">Meet <span class="accent-text">the Agent</span></h2>
+    <p class="sub sv" style="--d:.1s">Creativity runs on your machine</p>
 
-    <div class="demo">
-      <div class="demo-window">
-        <div class="demo-bar">
-          <span class="d" style="background:#ff5f57"></span><span class="d" style="background:#febc2e"></span><span class="d" style="background:#28c840"></span>
-          <span style="color:#8a93a6;font-size:12px;margin-left:8px">Replica Agent — retro-arcade-snake</span>
+    <div class="collage">
+      <div class="cg-card cg-a sv" style="--d:.05s">
+        <div style="position:relative;z-index:1;max-width:55%">
+          <div class="cg-kicker">Live Preview</div>
+          <h3>Design<br>Freely</h3>
+          <p>A workspace that lets you explore ideas visually and apply changes to your app the moment you ask for them.</p>
         </div>
-        <div class="demo-body" id="demoBody"></div>
+      </div>
+      <div class="cg-card cg-b sv" style="--d:.15s">
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;height:100%">
+          <div class="cg-kicker">Streaming Progress</div>
+          <h3>Move faster</h3>
+          <p>Watch plans, thoughts, and files stream in live. The Agent keeps its progress visible from first token to final file.</p>
+        </div>
+      </div>
+      <div class="cg-card cg-c sv" style="--d:.1s">
+        <div class="frames" aria-hidden="true">
+          <div class="frame"><div class="bar"></div></div>
+          <div class="frame tall"><div class="bar" style="width:70%"></div></div>
+          <div class="frame"><div class="bar" style="width:40%"></div></div>
+        </div>
+        <div class="cg-kicker">Real Projects</div>
+        <h3>Ship Anything</h3>
+        <p>Sites, games, tools, and dashboards, written to real folders on your disk that you own forever.</p>
+      </div>
+      <div class="cg-card cg-d sv" style="--d:.2s">
+        <div style="max-width:60%">
+          <div class="cg-kicker">Yours Alone</div>
+          <h3>Build private</h3>
+          <p>No accounts, no telemetry, no usage meters. Your prompts and your projects never leave localhost.</p>
+        </div>
       </div>
     </div>
 
-    <div class="grid3">
-      <div class="card" style="text-align:left">
-        <div class="icon i-orange">🧠</div>
-        <h3>Plans before it types</h3>
-        <p>Thinking-capable local models reason through your request first. Watch the thought process unfold, or collapse it and just see results.</p>
+    <div class="meet-cta sv">
+      <a class="btn btn-fill btn-lg" href="/products/agent">Deep dive into the Agent
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a class="link-underline" href="/#platform">Read about the platform</a>
+    </div>
+  </div>
+</section>
+
+<section class="platform" id="platform">
+  <div class="wrap">
+    <h2 class="d2 sv">Powered by the Replica platform</h2>
+    <div class="plat-grid">
+
+      <div class="plat-card p1 sv" style="--d:.05s">
+        <div class="kicker">Agent Chat</div>
+        <h3>Describe It.<br>Watch It Built.<span class="cursor-block blink"></span></h3>
+        <div class="art">
+          <div class="orbit">
+            <div class="ring"></div>
+            <div class="say">Make my idea real</div>
+            <div class="publish">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></svg>
+              Preview
+            </div>
+            <div class="agent-chip">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+              Agent
+            </div>
+          </div>
+        </div>
+        <p class="body">Describe your project and watch it appear. The Agent plans, writes real files, and serves your app instantly, then stays out of your way.</p>
       </div>
-      <div class="card" style="text-align:left">
-        <div class="icon i-blue">📁</div>
-        <h3>Real files, live on disk</h3>
-        <p>Every file the Agent writes lands in a real project folder you own. Open them in the built-in editor — or in any editor you like.</p>
+
+      <div class="plat-card p2 sv" style="--d:.15s">
+        <div class="kicker">Full Stack Workspace</div>
+        <h3>Build &amp; Run Your Apps Easily.</h3>
+        <div class="art">
+          <div class="stack-outline">
+            <div class="svc">Editor</div>
+            <div class="svc">Preview</div>
+            <div class="svc">Console</div>
+            <div class="svc">Hosting</div>
+          </div>
+        </div>
+        <p class="body">Built-in tools with zero setup: a file editor, live preview, and a console for scripts, so every project runs the moment it is written.</p>
       </div>
-      <div class="card" style="text-align:left">
-        <div class="icon i-green">▶</div>
-        <h3>Instant preview &amp; console</h3>
-        <p>Web apps render immediately in the preview pane. Scripts run in the console with <b>node</b> or <b>python</b>. Iterate by just asking again.</p>
+
+      <div class="plat-card p3 sv" style="--d:.25s">
+        <div class="kicker">Local Models</div>
+        <h3>Connect To Your Own AI.</h3>
+        <div class="art">
+          <div class="nodes">
+            <div class="wire w1"></div><div class="wire w2"></div><div class="wire w3"></div>
+            <div class="sat s1" title="Chat models">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+            </div>
+            <div class="sat s2" title="Thinking models">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 1 6 6c0 2.2-1.2 3.6-2.4 5-.9 1-1.6 2.2-1.6 4h-4c0-1.8-.7-3-1.6-4C7.2 12.6 6 11.2 6 9a6 6 0 0 1 6-6z"/><path d="M10 21h4"/></svg>
+            </div>
+            <div class="sat s3" title="Code models">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/></svg>
+            </div>
+            <div class="hub">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#fff"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#fff"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#fff"/></svg>
+            </div>
+          </div>
+        </div>
+        <p class="body">Point Replica at the models you already run with Ollama. Swap chat, thinking, and code models mid-project in one click.</p>
+      </div>
+
+      <div class="plat-card p4 sv" style="--d:.35s">
+        <div class="kicker">Private Control</div>
+        <h3>Your Apps Never Leave Home.</h3>
+        <div class="art">
+          <svg class="shield" width="150" height="170" viewBox="0 0 150 170" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M75 12l52 18v42c0 34-22 62-52 74-30-12-52-40-52-74V30z" stroke-width="2" opacity=".45"/>
+            <path d="M75 26l40 14v34c0 27-17 49-40 59-23-10-40-32-40-59V40z" stroke-width="2" opacity=".7"/>
+            <path d="M75 40l28 10v26c0 20-12 36-28 44-16-8-28-24-28-44V50z" stroke-width="2"/>
+            <path d="M62 88l9 9 18-19" stroke-width="2.4"/>
+          </svg>
+        </div>
+        <p class="body">A sandboxed local server with path-safe file APIs and zero telemetry. Nothing to leak because nothing is sent.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="quotes" id="community">
+  <div class="wrap">
+    <div class="quotes-grid">
+      <div class="q-label sv">
+        <h3>Trusted by builders</h3>
+        <p>Endorsed by localhost</p>
+      </div>
+      <div class="q-card sv" style="--d:.1s">
+        <div class="mark">&ldquo;</div>
+        <blockquote id="quoteText"></blockquote>
+        <footer>
+          <div class="who" id="quoteWho"></div>
+          <div class="role" id="quoteRole"></div>
+        </footer>
+      </div>
+      <div class="q-nav sv" style="--d:.2s">
+        <button class="q-btn" id="quoteNext">Next Testimonial
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <button class="q-btn prev" id="quotePrev">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          Previous Testimonial
+        </button>
       </div>
     </div>
   </div>
 </section>
 
-<section class="possible" id="possibilities">
-  <div class="wrap center">
-    <h2 class="title">From rapidly prototyping ideas to building<br>your own tools, the possibilities are endless</h2>
-    <p class="lede">Replica has everything you need to make building an app a breeze — build &amp; refine your apps by conversing with the Agent. Every project comes with a file workspace, live preview, and a console.</p>
-
-    <div class="grid3">
-      <div>
-        <div class="shot"><div class="inner">
-          <div class="row"><span class="pill" style="width:34%"></span><span class="pill" style="width:14%;background:#F26207"></span></div>
-          <div class="row"><span class="blk" style="width:30%;height:74px"></span><span class="blk" style="width:68%;height:74px"></span></div>
-          <div class="row"><span class="blk" style="width:100%;height:46px"></span></div>
-        </div></div>
-        <div class="caption" style="text-align:left">
-          <h3>Rapid prototyping</h3>
-          <p>Turn an idea into a working demo in one prompt, then refine it turn by turn until it feels right.</p>
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <div class="price-card sv">
+      <div class="price-head">
+        <div>
+          <h2 class="d2">Start Small. Scale Fast.</h2>
+          <p class="kicker">Designed for Every Stage</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="toggle" id="billToggle">
+            <button class="on">Monthly</button>
+            <button>Yearly</button>
+          </div>
+          <span class="save-badge">Save $0</span>
         </div>
       </div>
-      <div>
-        <div class="shot"><div class="inner">
-          <div class="row"><span class="pill" style="width:20%"></span><span class="pill" style="width:20%"></span><span class="pill" style="width:20%;background:#0079F2"></span></div>
-          <div class="row"><span class="blk" style="width:49%;height:56px"></span><span class="blk" style="width:49%;height:56px"></span></div>
-          <div class="row"><span class="blk" style="width:100%;height:64px"></span></div>
-        </div></div>
-        <div class="caption" style="text-align:left">
-          <h3>Internal tools</h3>
-          <p>Build that perfect little tool you always wanted — dashboards, converters, trackers — and keep it forever.</p>
+      <div class="plans">
+        <div class="plan">
+          <h4>Starter</h4>
+          <div class="amount">$0 <span>/ month</span></div>
+          <ul>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Unlimited Agent chats</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Unlimited projects on your disk</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Live preview and console</li>
+          </ul>
+          <a class="btn btn-outline" href="/agent">Start building</a>
+        </div>
+        <div class="plan popular">
+          <span class="pop-badge">Popular</span>
+          <h4>Builder</h4>
+          <div class="amount">$0 <span>/ month</span></div>
+          <ul>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Everything in Starter</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Thinking models with visible reasoning</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>Works fully offline</li>
+          </ul>
+          <a class="btn btn-fill" href="/agent">Start building</a>
+        </div>
+        <div class="plan">
+          <h4>Everything</h4>
+          <div class="amount">$0 <span>/ forever</span></div>
+          <ul>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>It is your computer</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>No accounts, no meters</li>
+            <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>MIT licensed</li>
+          </ul>
+          <a class="btn btn-outline" href="/agent">Start building</a>
         </div>
       </div>
-      <div>
-        <div class="shot"><div class="inner">
-          <div class="row"><span class="pill" style="width:44%"></span></div>
-          <div class="row"><span class="blk" style="width:32%;height:90px"></span><span class="blk" style="width:32%;height:90px"></span><span class="blk" style="width:32%;height:90px"></span></div>
-          <div class="row"><span class="pill" style="width:60%"></span></div>
-        </div></div>
-        <div class="caption" style="text-align:left">
-          <h3>Personal apps</h3>
-          <p>Games, planners, playgrounds, experiments — apps for you, not for a market. Nothing ever leaves your machine.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="dark" id="local">
-  <div class="wrap center">
-    <span class="kicker">Local by design</span>
-    <h2 class="title">Powered by your machine</h2>
-    <p class="lede">No accounts. No usage meters. No telemetry. Replica is a single Node server that talks to the Ollama instance you already run.</p>
-
-    <div class="grid3">
-      <div class="card" style="text-align:left">
-        <div class="icon">🦙</div>
-        <h3>Your models</h3>
-        <p>Pick any chat model you've pulled into Ollama and switch mid-project. Thinking models show their reasoning as they work.</p>
-      </div>
-      <div class="card" style="text-align:left">
-        <div class="icon">💾</div>
-        <h3>Your files</h3>
-        <p>Projects are plain folders in <code class="k">replica/projects</code>. Back them up, version them, or open them in VS Code anytime.</p>
-      </div>
-      <div class="card" style="text-align:left">
-        <div class="icon">🔌</div>
-        <h3>Works offline</h3>
-        <p>Generated apps use zero CDNs and zero external calls. Pull the network cable — everything still runs.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="start">
-  <div class="wrap center">
-    <span class="kicker">Getting started</span>
-    <h2 class="title">Up and running in three steps</h2>
-    <div class="steps">
-      <div class="step" style="text-align:left">
-        <h3>Start Ollama</h3>
-        <p>Make sure Ollama is running with at least one chat model pulled, e.g. <code>ollama pull qwen3.6:35b-a3b-q4_K_M</code></p>
-      </div>
-      <div class="step" style="text-align:left">
-        <h3>Start Replica</h3>
-        <p>From the replica folder run <code>node server.js</code> — no installs, no build step, no dependencies.</p>
-      </div>
-      <div class="step" style="text-align:left">
-        <h3>Build</h3>
-        <p>Open <code>localhost:4747/agent</code>, say what you want to make, and watch it happen.</p>
-      </div>
+      <p class="price-note">Every plan costs $0 because it runs on hardware you already own.</p>
     </div>
   </div>
 </section>
 
 <section class="cta">
   <div class="wrap">
-    <h2>What are you waiting for?</h2>
-    <p>Your models are loaded. Your disk is ready. The Agent is listening.</p>
-    <a class="btn btn-primary" style="font-size:17px;padding:14px 28px" href="/agent">Start building →</a>
+    <h2 class="d2 sv">What are you waiting for?</h2>
+    <div class="sv" style="--d:.1s"><a class="btn btn-fill btn-lg" href="/agent">Get started free</a></div>
   </div>
 </section>
 
-<footer>
-  <div class="wrap foot">
-    <span class="logo" style="font-size:16px">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#F26207"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#F26207"/></svg>
-      Replica
-    </span>
-    <span>A personal, local Replit-style workspace. Runs entirely on localhost — nothing to buy, nothing to sync.</span>
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div>
+      <a class="footer-logo" href="/">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#FF4B00"/></svg>
+        Replica
+      </a>
+      <div class="footer-meta">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="#6E7076" stroke-width="1.2"><circle cx="17" cy="17" r="13"/><path d="M4 17h26M17 4c5 4.5 5 21.5 0 26M17 4c-5 4.5-5 21.5 0 26"/><circle class="blink" cx="24" cy="10" r="2" fill="#FF4B00" stroke="none"/></svg>
+        <p>Made on localhost.<br>MIT licensed. Runs entirely on your machine, nothing to buy and nothing to sync.</p>
+      </div>
+    </div>
+    <div>
+      <h4>Handy links</h4>
+      <ul>
+        <li><a href="/agent">Open the workspace</a></li>
+        <li><a href="/products/agent">Meet the Agent</a></li>
+        <li><a href="/#platform">The platform</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#community">Community</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Local</h4>
+      <ul>
+        <li><a href="/api/health">Server status</a></li>
+        <li><a href="/api/models">Your models</a></li>
+        <li><a href="/api/projects">Your projects</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Connect</h4>
+      <ul>
+        <li><span>No socials.</span></li>
+        <li><span>No newsletter.</span></li>
+        <li><span>Go build something.</span></li>
+      </ul>
+    </div>
   </div>
 </footer>
 
+<script src="/site.js"></script>
 <script>
-  // hero prompt → carries the idea into the agent workspace
+  // hero prompt: carries the idea into the agent workspace
   const heroPrompt = document.getElementById('heroPrompt');
-  function go(){
+  const promptCard = document.getElementById('promptCard');
+  function go() {
     const v = heroPrompt.value.trim();
     location.href = v ? '/agent?prompt=' + encodeURIComponent(v) : '/agent';
   }
@@ -326,38 +578,99 @@
   heroPrompt.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
   });
-  document.querySelectorAll('.chip').forEach(c =>
-    c.addEventListener('click', () => { heroPrompt.value = c.dataset.p; heroPrompt.focus(); }));
+  heroPrompt.addEventListener('input', () =>
+    promptCard.classList.toggle('has-text', heroPrompt.value.trim().length > 0));
 
-  // rotating placeholder, like the real thing
-  const ideas = ['Build a website for…','Make a mobile app for…','Create a game about…','Design a dashboard for…','Animate something that…'];
+  // rotating placeholder
+  const ideas = ['Make a website for...', 'Build a mobile app for...', 'Create a game about...', 'Design a dashboard for...', 'Animate something that...'];
   let ii = 0;
   setInterval(() => { if (!heroPrompt.value) heroPrompt.placeholder = ideas[++ii % ideas.length]; }, 2600);
 
-  // typed agent demo
-  const script = [
-    ['u','> build me a retro arcade snake game with a scoreboard\n\n'],
-    ['th','Thinking: canvas grid, requestAnimationFrame loop, localStorage highscores…\n\n'],
-    ['n',"I'll build a neon-styled snake game with keyboard controls and a persistent scoreboard.\n\n"],
-    ['ok','✓ wrote index.html          1.2 KB\n'],
-    ['ok','✓ wrote style.css           2.8 KB\n'],
-    ['ok','✓ wrote game.js             6.4 KB\n\n'],
-    ['n','Done — arrow keys to steer, high scores persist between runs. Opening preview…']
+  // category carousel
+  const CATS = [
+    { name: 'Website',   prompt: 'Build a personal portfolio website with a projects grid and a contact section',
+      icon: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/>' },
+    { name: 'Mobile',    prompt: 'Make a mobile style habit tracker app with streaks and weekly stats',
+      icon: '<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>' },
+    { name: 'Design',    prompt: 'Design a moody landing page concept for a coffee roastery',
+      icon: '<rect x="4" y="4" width="12" height="12" rx="1.5" stroke-dasharray="3 3"/><path d="M14 14l7 3-3 1-1 3z" fill="currentColor" stroke="none"/>' },
+    { name: 'Slides',    prompt: 'Create a slide deck presentation about the history of video games with keyboard navigation',
+      icon: '<rect x="4" y="7" width="16" height="11" rx="1.5"/><path d="M8 4h8M6 21h12" stroke-linecap="round"/>' },
+    { name: 'Animation', prompt: 'Create an animated particle playground I can interact with',
+      icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/>' },
+    { name: 'Game',      prompt: 'Build a retro arcade snake game with a persistent scoreboard',
+      icon: '<rect x="2" y="7" width="20" height="11" rx="4"/><path d="M7 11v3M5.5 12.5h3M16 11.5h.01M18 14h.01" stroke-linecap="round"/>' },
+    { name: 'Tool',      prompt: 'Build a spreadsheet style budget tracker with editable cells and running totals',
+      icon: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M9 9v11M15 9v11"/>' }
   ];
-  const body = document.getElementById('demoBody');
-  let si = 0, ci = 0, out = '';
-  const cls = {u:'u',th:'th',ok:'ok',n:''};
-  function type(){
-    if (si >= script.length){ body.innerHTML = out; return; }
-    const [k, text] = script[si];
-    ci += Math.random() < .3 ? 2 : 1;
-    if (ci >= text.length){ out += span(k, text); si++; ci = 0; }
-    body.innerHTML = out + (si < script.length ? span(script[si][0], script[si][1].slice(0, ci)) : '') + '<span class="cur"></span>';
-    setTimeout(type, si >= script.length ? 0 : (script[si] && script[si][0]==='ok' ? 8 : 22));
+  let catStart = 0;
+  const catRow = document.getElementById('catRow');
+  function renderCats() {
+    catRow.innerHTML = '';
+    for (let k = 0; k < 5; k++) {
+      const c = CATS[(catStart + k) % CATS.length];
+      const b = document.createElement('button');
+      b.className = 'cat';
+      b.innerHTML = '<span class="tile"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">' + c.icon + '</svg></span><span>' + c.name + '</span>';
+      b.addEventListener('click', () => { heroPrompt.value = c.prompt; heroPrompt.dispatchEvent(new Event('input')); heroPrompt.focus(); });
+      catRow.appendChild(b);
+    }
   }
-  function span(k, t){ return cls[k] ? `<span class="${cls[k]}">${t.replace(/</g,'&lt;')}</span>` : t.replace(/</g,'&lt;'); }
-  const io = new IntersectionObserver(es => { if (es[0].isIntersecting){ type(); io.disconnect(); } });
-  io.observe(body);
+  document.getElementById('catPrev').addEventListener('click', () => { catStart = (catStart - 1 + CATS.length) % CATS.length; renderCats(); });
+  document.getElementById('catNext').addEventListener('click', () => { catStart = (catStart + 1) % CATS.length; renderCats(); });
+  renderCats();
+
+  // example prompt chips
+  const CHIP_SETS = [
+    ['Quarterly review presentation', 'Startup pitch deck', 'Product launch page'],
+    ['Pomodoro timer with stats', 'Recipe box with search', 'Reading list tracker'],
+    ['Neon snake game', 'Interactive particle field', 'Retro drum machine']
+  ];
+  let chipSet = 0;
+  const chipRow = document.getElementById('chipRow');
+  const tryBtn = document.getElementById('tryRefresh');
+  function renderChips() {
+    chipRow.innerHTML = '';
+    CHIP_SETS[chipSet].forEach(t => {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.textContent = t;
+      b.addEventListener('click', () => { heroPrompt.value = 'Build me a ' + t.toLowerCase(); heroPrompt.dispatchEvent(new Event('input')); heroPrompt.focus(); });
+      chipRow.appendChild(b);
+    });
+  }
+  tryBtn.addEventListener('click', () => {
+    chipSet = (chipSet + 1) % CHIP_SETS.length;
+    tryBtn.classList.toggle('spin');
+    renderChips();
+  });
+  renderChips();
+
+  // testimonial carousel
+  const QUOTES = [
+    { t: 'Every file the Agent writes lands in a folder I can actually open. Version control finally feels possible for my side projects again.', w: 'A. Developer', r: 'Basement Data Center' },
+    { t: 'My tokens are free now. My electricity bill disagrees, but we are working through it together.', w: 'Your GPU', r: 'Compute Department' },
+    { t: 'Zero requests left this machine while an entire arcade game appeared in the projects folder. I checked twice.', w: 'Your Router', r: 'Networking, recently unemployed' },
+    { t: 'I built a pomodoro timer, a budget tracker, and a snake game before lunch. All local. All mine.', w: 'A happy builder', r: 'localhost:4747' }
+  ];
+  let qi = 0;
+  const qText = document.getElementById('quoteText');
+  const qWho = document.getElementById('quoteWho');
+  const qRole = document.getElementById('quoteRole');
+  function renderQuote() {
+    qText.textContent = QUOTES[qi].t;
+    qWho.textContent = QUOTES[qi].w;
+    qRole.textContent = QUOTES[qi].r;
+  }
+  document.getElementById('quoteNext').addEventListener('click', () => { qi = (qi + 1) % QUOTES.length; renderQuote(); });
+  document.getElementById('quotePrev').addEventListener('click', () => { qi = (qi - 1 + QUOTES.length) % QUOTES.length; renderQuote(); });
+  renderQuote();
+
+  // billing toggle (every plan is $0, the toggle is a bit of theater)
+  document.querySelectorAll('#billToggle button').forEach(b =>
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#billToggle button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    }));
 </script>
 </body>
 </html>

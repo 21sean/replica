@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Replica — Workspace</title>
+<title>Replica Workspace</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/agent.css">
 </head>
@@ -67,14 +67,14 @@
 <!-- ══════════════════ docs modal ══════════════════ -->
 <div class="modal-backdrop hidden" id="docsModal">
   <div class="modal modal-wide">
-    <div class="modal-title"><h2>📖 How Replica works</h2><button class="icon-btn modal-x" data-close="docsModal">✕</button></div>
+    <div class="modal-title"><h2>How Replica works</h2><button class="icon-btn modal-x" data-close="docsModal">✕</button></div>
     <div class="docs">
       <p><b>Everything is local.</b> The Agent is whatever Ollama model you pick. Projects are plain folders in <code>replica/projects/</code> on your disk.</p>
-      <p><b>Building.</b> Describe what you want on the Home screen. The Agent plans, then writes real files — you'll see each one land with a ✓. The preview refreshes automatically.</p>
-      <p><b>Iterating.</b> Keep chatting in the project: "make the header sticky", "add dark mode", "fix the bug where…". The Agent sees your current files each turn — including any manual edits you made.</p>
+      <p><b>Building.</b> Describe what you want on the Home screen. The Agent plans, then writes real files, and you'll see each one land with a ✓. The preview refreshes automatically.</p>
+      <p><b>Iterating.</b> Keep chatting in the project: "make the header sticky", "add dark mode", "fix the bug where…". The Agent sees your current files each turn, including any manual edits you made.</p>
       <p><b>Code tab.</b> Full editor over the project files. <code>Ctrl+S</code> saves. Your edits become part of the Agent's context.</p>
       <p><b>Console tab.</b> Run <code>node file.js</code> or <code>python file.py</code> inside the project folder (60s limit).</p>
-      <p><b>Models.</b> Bigger models build better apps. Thinking models (qwen3.6, gemma4) show their reasoning — collapse it with a click. First response after idle can take a while as the model loads into memory.</p>
+      <p><b>Models.</b> Bigger models build better apps. Thinking models (qwen3.6, gemma4) show their reasoning, and you can collapse it with a click. First response after idle can take a while as the model loads into memory.</p>
     </div>
   </div>
 </div>
@@ -214,7 +214,7 @@
               </div>
             </div>
             <div class="ptab-view hidden" id="tab-console">
-              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project — e.g.  node script.js   or   python main.py</span></div>
+              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project, e.g.  node script.js   or   python main.py</span></div>
               <div class="console-in">
                 <span class="con-prompt">$</span>
                 <input id="consoleCmd" spellcheck="false" placeholder="node script.js">

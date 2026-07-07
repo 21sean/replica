@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent - Replica</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/site.css">
+<style>
+  body { background: #FCFAF7; }
+
+  /* ---------- hero ---------- */
+  .a-hero { padding: 72px 0 84px; text-align: center; }
+  .a-hero h1 {
+    font-weight: 400; color: #1B2333;
+    font-size: clamp(44px, 7vw, 72px); letter-spacing: -.047em; line-height: 1.0;
+  }
+  .a-hero .sub { max-width: 620px; margin: 22px auto 0; font-size: 14px; color: var(--ink-body); line-height: 1.55; }
+  .a-hero .btn { margin-top: 28px; }
+
+  /* ---------- orange band ---------- */
+  .band-edge { height: 180px; }
+  .band-edge.top    { background: linear-gradient(to bottom, #FCFAF7 0%, #FCE9B8 40%, #F5A32B 72%, var(--band) 100%); }
+  .band-edge.bottom { background: linear-gradient(to top,    #FCFAF7 0%, #FCE9B8 40%, #F5A32B 72%, var(--band) 100%); }
+  .band { background: var(--band); color: #fff; }
+  .band-inner { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
+
+  .feature { display: grid; grid-template-columns: 1.15fr 1fr; gap: 72px; align-items: center; padding: 96px 0; opacity: .18; transition: opacity .7s ease; }
+  .feature.active { opacity: 1; }
+  .feature.text-only { grid-template-columns: 1fr; max-width: 560px; padding: 48px 0 96px; }
+  .feature h3 { font-weight: 500; font-size: 25px; letter-spacing: -.02em; line-height: 1.15; color: #fff; }
+  .feature p { margin-top: 14px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.85); max-width: 420px; }
+  .feature .note { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,.7); }
+
+  /* mock "screenshot" windows */
+  .shot { border-radius: 18px; padding: 10px; background: linear-gradient(160deg, #E8E4DE, #B9B4AC); box-shadow: 0 30px 70px -30px rgba(60,20,0,.5); transform: translateY(24px); transition: transform .8s cubic-bezier(.16,1,.3,1); }
+  .feature.active .shot { transform: translateY(0); }
+  .shot .screen { border-radius: 10px; background: #14203A; padding: 22px; min-height: 280px; }
+  .shot .bubble {
+    background: #1D3A6E; border: 1px solid #3D63A8; border-radius: 9px;
+    color: #E7EEFC; font-size: 12.5px; padding: 10px 12px; max-width: 88%;
+  }
+  .shot .status {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    color: #9FB4DA; font-size: 12px;
+    background: #182A4E; border-radius: 9px; padding: 9px 12px; max-width: 88%;
+  }
+  .shot .status svg { flex: none; }
+  .shot.light .screen { background: #FBF8F3; }
+  .shot .sheet-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .shot .cell { height: 22px; border-radius: 4px; background: #EDE7DD; flex: 1; }
+  .shot .cell.head { background: #E2D9CB; }
+  .shot .cell.accent { background: var(--salmon); flex: .6; }
+  .shot .toolbar { display: flex; gap: 6px; margin-bottom: 14px; }
+  .shot .dotb { width: 9px; height: 9px; border-radius: 50%; background: #2C3F66; }
+  .shot.light .dotb { background: #D9D0C2; }
+  .shot .chat-opts { display: flex; gap: 8px; margin-top: 14px; }
+  .shot .opt { border: 1px solid #3D63A8; border-radius: 999px; color: #9FB4DA; font-size: 11px; padding: 6px 10px; }
+
+  /* ---------- community ---------- */
+  .community { padding: 100px 0 80px; text-align: center; }
+  .community h2 { font-weight: 400; font-size: 20px; letter-spacing: -.01em; color: var(--ink-body); }
+  .comm-grid { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; text-align: left; }
+  .comm-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; }
+  .comm-card blockquote { font-size: 14.5px; line-height: 1.5; color: var(--ink-body); }
+  .comm-card footer { margin-top: auto; padding-top: 26px; display: flex; align-items: center; gap: 10px; }
+  .comm-card .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--greige); display: grid; place-items: center; color: var(--ink-head); flex: none; }
+  .comm-card .who { font-size: 12px; font-weight: 600; }
+  .comm-card .role { font-size: 11px; color: var(--ink-soft); }
+
+  /* ---------- video ---------- */
+  .video { padding: 60px 0 100px; text-align: center; }
+  .video h2 { font-weight: 400; color: var(--ink-head); font-size: clamp(28px, 3.6vw, 40px); letter-spacing: -.04em; line-height: 1.05; }
+  .player { margin: 40px auto 0; max-width: 860px; aspect-ratio: 16 / 9; border-radius: var(--radius-lg); background: #CFCCC7; position: relative; overflow: hidden; cursor: pointer; }
+  .player .screen-demo {
+    position: absolute; inset: 0; background: #0E1525; padding: 34px 40px;
+    font-family: var(--mono); font-size: 13.5px; text-align: left; color: #C6CDD5;
+    white-space: pre-wrap; overflow: hidden; opacity: 0; transition: opacity .4s ease;
+  }
+  .player.playing .screen-demo { opacity: 1; }
+  .player .play {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 74px; height: 74px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,.95); display: grid; place-items: center;
+    transition: transform .15s ease, opacity .3s ease;
+  }
+  .player:hover .play { transform: translate(-50%,-50%) scale(1.06); }
+  .player.playing .play { opacity: 0; pointer-events: none; }
+  .screen-demo .u  { color: #8FD0FF; }
+  .screen-demo .th { color: #8A93A6; font-style: italic; }
+  .screen-demo .ok { color: #57D38C; }
+  .screen-demo .cur { display: inline-block; width: 8px; height: 15px; background: var(--accent-strong); vertical-align: text-bottom; animation: blink 1s step-end infinite; }
+
+  /* ---------- final cta ---------- */
+  .cta { padding: 80px 0 120px; text-align: center; }
+  .cta .btn { margin-top: 30px; }
+
+  @media (max-width: 900px) {
+    .feature { grid-template-columns: 1fr; gap: 36px; padding: 64px 0; }
+    .comm-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="nav-logo" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#FF4B00"/></svg>
+      Replica
+    </a>
+    <div class="nav-links">
+      <a href="/#platform">Platform</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/#community">Community</a>
+      <a class="nav-agent" href="/products/agent">Agent <span class="badge">1</span></a>
+    </div>
+    <div class="nav-cta">
+      <a class="link-quiet" href="/agent">Open workspace</a>
+      <a class="btn btn-fill" href="/agent">Start building</a>
+    </div>
+  </div>
+</nav>
+
+<header class="a-hero">
+  <div class="wrap-mid">
+    <h1 class="sv in" style="--d:.05s">The best Agent for building<br>Local-Only apps</h1>
+    <p class="sub sv in" style="--d:.15s">Tell the Replica Agent your app or website idea and it will build it for you automatically, on your own hardware. It is like having a small team of software engineers living in your GPU, ready to build what you need through a simple chat. No coding experience needed. No cloud involved.</p>
+    <div class="sv in" style="--d:.25s"><a class="btn btn-fill btn-lg" href="/agent">Start building free</a></div>
+  </div>
+</header>
+
+<div class="band-edge top"></div>
+<div class="band">
+  <div class="band-inner">
+
+    <div class="feature" data-feature>
+      <div class="shot">
+        <div class="screen">
+          <div class="toolbar"><span class="dotb"></span><span class="dotb"></span><span class="dotb"></span></div>
+          <div class="bubble">Make the snake game harder as my score goes up</div>
+          <div class="status">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            Rebalancing difficulty curve and speed scaling
+          </div>
+          <div class="chat-opts"><span class="opt">Extended Thinking</span><span class="opt">High Power Model</span></div>
+        </div>
+      </div>
+      <div>
+        <h3>Build and refine your app with the Agent</h3>
+        <p>Start by telling the Agent what kind of app or site you want to build. Then keep improving it by chatting. The Agent reads its own files, applies your feedback, and serves the result instantly in the live preview.</p>
+        <p class="note">For heavier tasks, switch to a bigger model or turn on thinking mode. It is your hardware, so it is your call.</p>
+      </div>
+    </div>
+
+    <div class="feature text-only" data-feature>
+      <h3>Turn on thinking models for more complex tasks</h3>
+      <p>Point Replica at any reasoning-capable model in your Ollama library. Watch the thought process stream in as it plans your app, or collapse it and just see results.</p>
+    </div>
+
+    <div class="feature" data-feature>
+      <div class="shot light">
+        <div class="screen">
+          <div class="toolbar"><span class="dotb"></span><span class="dotb"></span><span class="dotb"></span></div>
+          <div class="sheet-row"><span class="cell head"></span><span class="cell head"></span><span class="cell head"></span><span class="cell accent"></span></div>
+          <div class="sheet-row"><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div>
+          <div class="sheet-row"><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div>
+          <div class="sheet-row"><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div>
+          <div class="sheet-row"><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span></div>
+        </div>
+      </div>
+      <div>
+        <h3>Everything built in: editor, preview, console, and hosting</h3>
+        <p>Every project comes with a real file workspace, a live preview pane, and a console for running scripts. No setup, no config files, no waiting. It works the moment the Agent writes it.</p>
+      </div>
+    </div>
+
+    <div class="feature text-only" data-feature>
+      <h3>Ask again and the Agent refines its own work</h3>
+      <p>Change your mind as often as you like. The Agent edits the exact files it wrote instead of starting over, so your project evolves turn by turn until it feels right.</p>
+    </div>
+
+    <div class="feature" data-feature>
+      <div class="shot">
+        <div class="screen">
+          <div class="toolbar"><span class="dotb"></span><span class="dotb"></span><span class="dotb"></span></div>
+          <div class="bubble">Hi there, what do you want to make?</div>
+          <div class="status">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 10l7-7 7 7"/></svg>
+            Describe your idea to get started
+          </div>
+          <div class="chat-opts"><span class="opt">Game</span><span class="opt">Tool</span><span class="opt">Dashboard</span></div>
+        </div>
+      </div>
+      <div>
+        <h3>Build games, tools, and automations</h3>
+        <p>Arcade games, budget trackers, dashboards, timers, playgrounds. If it runs in a browser or a console, the Agent can build it, and the finished project is a plain folder you keep forever.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="band-edge bottom"></div>
+
+<section class="community">
+  <div class="wrap">
+    <h2 class="sv">Get inspired by our community</h2>
+    <div class="comm-grid">
+      <div class="comm-card sv" style="--d:.05s">
+        <blockquote>"Replica feels like the perfect combination of just enough tooling and total ownership. Everything it builds is sitting right there in a folder, insanely fast and completely mine."</blockquote>
+        <footer>
+          <span class="avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg></span>
+          <div><div class="who">A. Tinkerer</div><div class="role">Weekend Project Enthusiast</div></div>
+        </footer>
+      </div>
+      <div class="comm-card sv" style="--d:.15s">
+        <blockquote>"I asked it to clone my favorite productivity app just to see how far a single prompt would get. The result was a surprisingly functional prototype, and my internet was unplugged the whole time."</blockquote>
+        <footer>
+          <span class="avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg></span>
+          <div><div class="who">S. Skeptic</div><div class="role">Former Cloud Believer</div></div>
+        </footer>
+      </div>
+      <div class="comm-card sv" style="--d:.25s">
+        <blockquote>"Other app builders kept asking me to sign in, upgrade, and verify my email. Replica asked me what I wanted to build. It got me from zero to working game in one evening."</blockquote>
+        <footer>
+          <span class="avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg></span>
+          <div><div class="who">P. Patient-No-Longer</div><div class="role">Chief Fun Officer, Home Office</div></div>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="video">
+  <div class="wrap">
+    <h2 class="sv">What is the Replica Agent?<br>Find out in 60 seconds</h2>
+    <div class="player sv" id="player" style="--d:.15s" role="button" aria-label="Play demo" tabindex="0">
+      <div class="screen-demo" id="demoBody"></div>
+      <button class="play" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#1B2333"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2 class="d2 sv">What are you waiting for?</h2>
+    <div class="sv" style="--d:.1s"><a class="btn btn-fill btn-lg" href="/agent">Get started free</a></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div>
+      <a class="footer-logo" href="/">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="12" y="8.75" width="9" height="6.5" rx="1.4" fill="#FF4B00"/><rect x="3" y="15.5" width="9" height="6.5" rx="1.4" fill="#FF4B00"/></svg>
+        Replica
+      </a>
+      <div class="footer-meta">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="#6E7076" stroke-width="1.2"><circle cx="17" cy="17" r="13"/><path d="M4 17h26M17 4c5 4.5 5 21.5 0 26M17 4c-5 4.5-5 21.5 0 26"/><circle class="blink" cx="24" cy="10" r="2" fill="#FF4B00" stroke="none"/></svg>
+        <p>Made on localhost.<br>MIT licensed. Runs entirely on your machine, nothing to buy and nothing to sync.</p>
+      </div>
+    </div>
+    <div>
+      <h4>Handy links</h4>
+      <ul>
+        <li><a href="/agent">Open the workspace</a></li>
+        <li><a href="/products/agent">Meet the Agent</a></li>
+        <li><a href="/#platform">The platform</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/#community">Community</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Local</h4>
+      <ul>
+        <li><a href="/api/health">Server status</a></li>
+        <li><a href="/api/models">Your models</a></li>
+        <li><a href="/api/projects">Your projects</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Connect</h4>
+      <ul>
+        <li><span>No socials.</span></li>
+        <li><span>No newsletter.</span></li>
+        <li><span>Go build something.</span></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+<script>
+  // orange band features brighten as they enter the viewport
+  var fio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { e.target.classList.toggle('active', e.isIntersecting); });
+  }, { threshold: 0.45 });
+  document.querySelectorAll('[data-feature]').forEach(function (f) { fio.observe(f); });
+
+  // the "60 second video" is a live typed demo of an Agent session
+  var script = [
+    ['u', '> build me a retro arcade snake game with a scoreboard\n\n'],
+    ['th', 'Thinking: canvas grid, requestAnimationFrame loop, localStorage highscores\n\n'],
+    ['n', 'I will build a neon styled snake game with keyboard controls and a persistent scoreboard.\n\n'],
+    ['ok', 'wrote index.html          1.2 KB\n'],
+    ['ok', 'wrote style.css           2.8 KB\n'],
+    ['ok', 'wrote game.js             6.4 KB\n\n'],
+    ['n', 'Done. Arrow keys to steer, high scores persist between runs. Opening preview...']
+  ];
+  var body = document.getElementById('demoBody');
+  var player = document.getElementById('player');
+  var started = false;
+  var cls = { u: 'u', th: 'th', ok: 'ok', n: '' };
+  function span(k, t) {
+    var safe = t.replace(/</g, '&lt;');
+    return cls[k] ? '<span class="' + cls[k] + '">' + safe + '</span>' : safe;
+  }
+  function runDemo() {
+    var si = 0, ci = 0, out = '';
+    (function type() {
+      if (si >= script.length) { body.innerHTML = out; return; }
+      ci += Math.random() < .3 ? 2 : 1;
+      var k = script[si][0], text = script[si][1];
+      if (ci >= text.length) { out += span(k, text); si++; ci = 0; }
+      body.innerHTML = out + (si < script.length ? span(script[si][0], script[si][1].slice(0, ci)) : '') + '<span class="cur"></span>';
+      setTimeout(type, si >= script.length ? 0 : (script[si] && script[si][0] === 'ok' ? 8 : 22));
+    })();
+  }
+  function play() {
+    if (started) return;
+    started = true;
+    player.classList.add('playing');
+    setTimeout(runDemo, 350);
+  }
+  player.addEventListener('click', play);
+  player.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });
+</script>
+</body>
+</html>
