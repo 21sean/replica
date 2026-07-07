@@ -1,0 +1,15 @@
+# user-generated workspace projects (local data, never committed)
+projects/
+
+# node
+node_modules/
+npm-debug.log*
+
+# env / local config
+.env
+.env.local
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini

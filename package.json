@@ -1,0 +1,24 @@
+{
+  "name": "replica",
+  "version": "0.1.0",
+  "description": "A fully local, zero-dependency Replit-style AI workspace powered by Ollama",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ollama",
+    "ai-agent",
+    "local-first",
+    "code-generation",
+    "replit",
+    "workspace"
+  ],
+  "license": "MIT"
+}
