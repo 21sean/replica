@@ -5,21 +5,64 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 // ─────────────────────────────────────────────── state
+// Workspace state (profile, prefs, model, workspace name) is server-backed:
+// loaded once at boot, saved fire-and-forget on change, shared by every
+// browser that opens this Replica instance.
+let ws = { user: null, wsname: '', model: '', prefs: {} };
+let wsSaveTimer = null;
+function saveWorkspace() {
+  clearTimeout(wsSaveTimer);
+  wsSaveTimer = setTimeout(() => {
+    fetch('/api/workspace', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ws),
+    }).catch(() => {});
+  }, 150);
+}
+
 const store = {
-  get user() { try { return JSON.parse(localStorage.getItem('replica.user')); } catch { return null; } },
-  set user(v) { localStorage.setItem('replica.user', JSON.stringify(v)); },
-  get model() { return localStorage.getItem('replica.model') || ''; },
-  set model(v) { localStorage.setItem('replica.model', v); syncModelSelects(); },
-  get wsname() { return localStorage.getItem('replica.wsname') || ''; },
-  set wsname(v) { localStorage.setItem('replica.wsname', v); },
-  get published() { try { return JSON.parse(localStorage.getItem('replica.published')) || []; } catch { return []; } },
-  set published(v) { localStorage.setItem('replica.published', JSON.stringify(v)); },
-  get prefs() {
-    try { return { showThinking: true, rotateIdeas: true, ...JSON.parse(localStorage.getItem('replica.prefs') || '{}') }; }
-    catch { return { showThinking: true, rotateIdeas: true }; }
-  },
-  set prefs(v) { localStorage.setItem('replica.prefs', JSON.stringify(v)); },
+  get user() { return ws.user; },
+  set user(v) { ws.user = v; saveWorkspace(); },
+  get model() { return ws.model || ''; },
+  set model(v) { ws.model = v; saveWorkspace(); syncModelSelects(); },
+  get wsname() { return ws.wsname || ''; },
+  set wsname(v) { ws.wsname = v; saveWorkspace(); },
+  get prefs() { return { showThinking: true, rotateIdeas: true, ...(ws.prefs || {}) }; },
+  set prefs(v) { ws.prefs = v; saveWorkspace(); },
 };
+
+async function loadWorkspace() {
+  try {
+    const j = await (await fetch('/api/workspace')).json();
+    ws = { user: j.user || null, wsname: j.wsname || '', model: j.model || '', prefs: j.prefs || {} };
+  } catch { /* server unreachable; stay in-memory */ }
+  if (!ws.user) migrateLocalState();
+}
+
+// one-time migration of state from before it moved server-side
+function migrateLocalState() {
+  try {
+    const user = JSON.parse(localStorage.getItem('replica.user') || 'null');
+    if (!user) return;
+    ws.user = user;
+    ws.wsname = localStorage.getItem('replica.wsname') || '';
+    ws.model = localStorage.getItem('replica.model') || '';
+    try { ws.prefs = JSON.parse(localStorage.getItem('replica.prefs') || '{}'); } catch { ws.prefs = {}; }
+    saveWorkspace();
+    let published = [];
+    try { published = JSON.parse(localStorage.getItem('replica.published') || '[]'); } catch { /* nothing to migrate */ }
+    for (const id of published) {
+      fetch('/api/projects/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published: true }),
+      }).catch(() => {});
+    }
+    ['replica.user', 'replica.model', 'replica.wsname', 'replica.published', 'replica.prefs']
+      .forEach((k) => localStorage.removeItem(k));
+  } catch { /* corrupted local state, start fresh */ }
+}
 
 let models = [];
 let projects = [];            // cached list from /api/projects
@@ -103,11 +146,24 @@ function autosize(t) {
   t.style.height = 'auto';
   t.style.height = Math.min(t.scrollHeight, 200) + 'px';
 }
-function isPublished(id) { return store.published.includes(id); }
-function setPublished(id, on) {
-  const set = new Set(store.published);
-  on ? set.add(id) : set.delete(id);
-  store.published = [...set];
+function isPublished(id) {
+  const p = projects.find((x) => x.id === id);
+  return !!(p && p.published);
+}
+async function setPublished(id, on) {
+  try {
+    await fetch('/api/projects/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ published: on }),
+    });
+  } catch (e) {
+    toast('Could not update', e.message, 'warn');
+    return false;
+  }
+  const p = projects.find((x) => x.id === id);
+  if (p) p.published = on;
+  return true;
 }
 
 // ─────────────────────────────────────────────── toasts
@@ -264,6 +320,7 @@ function promptDialog({ title, desc = '', label = '', value = '', placeholder = 
 // every top-level const below it is initialized (TDZ), since the wire*()
 // functions touch them synchronously.
 async function init() {
+  await loadWorkspace();
   wireStaticDialogs();
   wireOnboarding();
   wireSidebar();
@@ -371,13 +428,19 @@ function wireSidebar() {
 async function resetWorkspace() {
   const ok = await confirmDialog({
     title: 'Reset workspace?',
-    desc: 'This clears your profile, preferences, and published flags from this browser. Project files stay untouched on disk.',
+    desc: 'This clears your profile, preferences, and workspace name for every browser on this machine. Projects and their published status stay untouched on disk.',
     confirmText: 'Reset workspace',
     danger: true,
   });
   if (!ok) return;
-  ['replica.user', 'replica.model', 'replica.wsname', 'replica.published', 'replica.prefs']
-    .forEach((k) => localStorage.removeItem(k));
+  ws = { user: null, wsname: '', model: '', prefs: {} };
+  try {
+    await fetch('/api/workspace', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ws),
+    });
+  } catch { /* reload will show onboarding either way */ }
   location.reload();
 }
 
@@ -410,7 +473,7 @@ async function loadModels() {
   } catch { models = []; }
   if (!store.model || !models.some((m) => m.name === store.model)) {
     const pref = models.find((m) => /qwen3/i.test(m.name)) || models[0];
-    if (pref) localStorage.setItem('replica.model', pref.name);
+    if (pref) { ws.model = pref.name; saveWorkspace(); }
   }
   syncModelSelects();
 }
@@ -616,8 +679,8 @@ function projectMenuItems(p) {
     { label: 'Open preview in new tab', icon: 'ext', onClick: () => window.open(`/preview/${p.id}/`, '_blank') },
     { type: 'sep' },
     isPublished(p.id)
-      ? { label: 'Unpublish', icon: 'globe', onClick: () => { setPublished(p.id, false); toast('Unpublished', `${p.name} was removed from Published Projects.`); renderProjects(); renderPublished(); renderSecurity(); } }
-      : { label: 'Publish', icon: 'globe', onClick: () => { setPublished(p.id, true); toast('Published locally', `${p.name} now shows up under Published Projects.`, 'ok'); renderProjects(); renderPublished(); renderSecurity(); } },
+      ? { label: 'Unpublish', icon: 'globe', onClick: async () => { if (await setPublished(p.id, false)) { toast('Unpublished', `${p.name} no longer has a public URL.`); renderProjects(); renderPublished(); renderSecurity(); } } }
+      : { label: 'Publish', icon: 'globe', onClick: async () => { if (await setPublished(p.id, true)) { toast('Published', `${p.name} is now served at /apps/${p.id}/`, 'ok'); renderProjects(); renderPublished(); renderSecurity(); } } },
     { label: 'Rename', icon: 'pen', onClick: () => renameProject(p) },
     { type: 'sep' },
     { label: 'Delete project', icon: 'trash', danger: true, onClick: () => deleteProject(p) },
@@ -675,7 +738,6 @@ async function deleteProject(p) {
   });
   if (!ok) return;
   await fetch('/api/projects/' + p.id, { method: 'DELETE' });
-  setPublished(p.id, false);
   toast('Project deleted', `${p.name} was removed.`);
   refreshProjects();
 }
@@ -699,15 +761,16 @@ function renderPublished() {
       <div class="pub-ic">${ic('globe')}</div>
       <div class="pub-info">
         <div class="pub-name">${esc(p.name)}</div>
-        <div class="pub-sub">Published locally, updated ${timeAgo(p.updatedAt)}</div>
+        <div class="pub-sub">Served at <code>/apps/${esc(p.id)}/</code>, updated ${timeAgo(p.updatedAt)}</div>
       </div>
       <button class="btn btn-secondary btn-sm" data-act="view">${ic('ext')} View app</button>
       <button class="icon-btn" data-act="menu" title="Options">${ic('dots')}</button>
     </div>`);
-    $('[data-act="view"]', row).onclick = () => window.open(`/preview/${p.id}/`, '_blank');
+    $('[data-act="view"]', row).onclick = () => window.open(`/apps/${p.id}/`, '_blank');
     $('[data-act="menu"]', row).onclick = (e) => openMenu(e.currentTarget, [
       { label: 'Open in workspace', icon: 'code', onClick: () => openProjectById(p.id) },
-      { label: 'Unpublish', icon: 'globe', onClick: () => { setPublished(p.id, false); renderPublished(); renderProjects(); toast('Unpublished', `${p.name} was removed from Published Projects.`); } },
+      { label: 'Copy app link', icon: 'ext', onClick: () => { navigator.clipboard?.writeText(`${location.origin}/apps/${p.id}/`); toast('Link copied', `${location.origin}/apps/${p.id}/`, 'ok'); } },
+      { label: 'Unpublish', icon: 'globe', onClick: async () => { if (await setPublished(p.id, false)) { renderPublished(); renderProjects(); toast('Unpublished', `${p.name} no longer has a public URL.`); } } },
     ], { align: 'end' });
     list.appendChild(row);
   }

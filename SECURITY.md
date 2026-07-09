@@ -39,8 +39,9 @@ Be aware of these before changing the defaults:
   API. If that matters to you, review generated code before opening previews,
   or run Replica under a separate OS user.
 - **`HOST=0.0.0.0` exposes everything.** Anyone who can reach the port can
-  create projects and run allowlisted commands. Only expose Replica on networks
-  where you trust every device, ideally behind an authenticating reverse proxy.
+  create projects, run allowlisted commands, and open published apps under
+  `/apps/`. Only expose Replica on networks where you trust every device,
+  ideally behind an authenticating reverse proxy.
 
 ## Reporting
 

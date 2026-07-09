@@ -36,6 +36,9 @@ alongside. No accounts, no credits, no cloud, no telemetry.
 - **Real server apps, not just static sites.** Press Run and Replica starts your
   project's dev server on a free port, streams its logs to the console, and
   proxies the preview to it, Node and Python backends included.
+- **Real publishing.** Publish a project and it gets a stable URL at
+  `/apps/<project>/` that works in any browser tab, served straight from your
+  machine (set `HOST=0.0.0.0` to share it on your LAN).
 - **Marketing page included.** A landing page at `/` describing the product, minus
   every sales artifact (no pricing, plans, credits, or upsells anywhere).
 

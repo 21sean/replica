@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Real publishing: `published` lives in project metadata and gates stable
+  `/apps/<project>/` URLs (static or proxied to the running process); the
+  Published Projects view links and copies those URLs
+- Workspace state (profile, prefs, workspace name, model) moved server-side to
+  `projects/workspace.json` with one-time migration from localStorage, so
+  every browser sees the same workspace
 - Syntax-highlighted editor: a zero-dependency tokenizer (JS/TS, CSS, HTML,
   JSON, Python) rendered under a transparent textarea, so editing behavior is
   unchanged; `fileChunk` chat events now carry the streamed text and the Code

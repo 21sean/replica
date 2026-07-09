@@ -443,6 +443,7 @@ input, textarea { font-family: inherit; color: var(--text); }
 .pub-row .pub-info { flex: 1; min-width: 0; }
 .pub-row .pub-name { font-size: 14px; font-weight: 600; }
 .pub-row .pub-sub { font-size: 12px; color: var(--dim); margin-top: 1px; }
+.pub-row .pub-sub code, .page-sub code { font-family: var(--mono); font-size: 11px; color: #8FD0FF; }
 
 /* integrations */
 .integ-panel {

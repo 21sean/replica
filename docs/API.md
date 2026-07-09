@@ -10,6 +10,7 @@ noted. Errors are always `{ "error": string }` with an appropriate status code.
 | GET | `/` | Marketing page |
 | GET | `/agent` | Workspace app |
 | GET | `/preview/:id/*` | Serves project files statically (`index.html` default, `Cache-Control: no-store`). If the project has a running process that accepts connections, the preview proxies to it instead. |
+| GET | `/apps/:id/*` | Published apps only (`meta.published`); same static-or-proxy behavior as previews but with no workspace error bridge. `404` when unpublished. |
 
 ## System
 
@@ -47,8 +48,21 @@ Create a project. `files` is optional (used by import).
 
 Returns `201` with the project metadata. Ids are slugs: `my-app-3f2a`.
 
-### `PATCH /api/projects/:id` — update `name` / `description`.
-### `DELETE /api/projects/:id` — delete the project folder permanently.
+### `PATCH /api/projects/:id` — update `name` / `description` / `runCommand` / `published`.
+### `DELETE /api/projects/:id` — delete the project folder permanently (stops its process first).
+
+## Workspace state
+
+Profile, preferences, workspace name, and preferred model live server-side in
+`projects/workspace.json`, so every browser sees the same workspace.
+
+### `GET /api/workspace`
+
+```json
+{ "user": { "username": "sean", "fullName": "Sean", "role": "Developer" }, "wsname": "Sean's Workspace", "model": "qwen3.6:35b-a3b-q4_K_M", "prefs": { "showThinking": true } }
+```
+
+### `PUT /api/workspace` — replace the state with the given `{user, wsname, model, prefs}`.
 
 ## Files
 

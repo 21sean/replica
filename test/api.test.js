@@ -346,6 +346,50 @@ test('run starts a server process, preview proxies to it, stop kills it', async 
   assert.match(await staticPrev.text(), /createServer/);
 });
 
+test('publishing gives the project a stable /apps URL', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Shipped App' });
+  await json('PUT', `/api/projects/${meta.id}/file?path=index.html`, { content: '<h1>Shipped</h1>' });
+
+  // unpublished projects are not served
+  const before = await fetch(`${base}/apps/${meta.id}/`);
+  assert.equal(before.status, 404);
+  assert.match(await before.text(), /not published/);
+
+  const patched = await json('PATCH', `/api/projects/${meta.id}`, { published: true });
+  assert.equal(patched.body.published, true);
+
+  const after = await fetch(`${base}/apps/${meta.id}/`);
+  assert.equal(after.status, 200);
+  assert.match(await after.text(), /<h1>Shipped<\/h1>/);
+  // published apps are the app itself, no workspace bridge injected
+  assert.doesNotMatch(await (await fetch(`${base}/apps/${meta.id}/`)).text(), /replica-bridge/);
+
+  await json('PATCH', `/api/projects/${meta.id}`, { published: false });
+  assert.equal((await fetch(`${base}/apps/${meta.id}/`)).status, 404);
+});
+
+test('workspace state round-trips through the server', async () => {
+  const empty = await json('GET', '/api/workspace');
+  assert.equal(empty.status, 200);
+
+  const saved = await json('PUT', '/api/workspace', {
+    user: { username: 'tester', fullName: 'Test User', role: 'Developer' },
+    wsname: 'Test Workspace',
+    model: 'mock-coder:1b',
+    prefs: { showThinking: false },
+  });
+  assert.equal(saved.body.user.username, 'tester');
+
+  const back = await json('GET', '/api/workspace');
+  assert.equal(back.body.wsname, 'Test Workspace');
+  assert.equal(back.body.model, 'mock-coder:1b');
+  assert.equal(back.body.prefs.showThinking, false);
+
+  // the state file must not show up as a project
+  const projects = await json('GET', '/api/projects');
+  assert.ok(!projects.body.projects.some((p) => !p.id));
+});
+
 test('project deletion removes the directory', async () => {
   const { body: meta } = await json('POST', '/api/projects', { name: 'Doomed' });
   assert.ok(fs.existsSync(path.join(projectsDir, meta.id)));

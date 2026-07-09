@@ -162,18 +162,25 @@ Code directly) and the agent's next turn sees exactly what's on disk.
 
 ```
 projects/
+├── workspace.json                ← profile, prefs, workspace name (server-side)
 └── pomodoro-timer-3f2a/          ← one plain folder per project
     ├── index.html                ← the project itself, nothing else mixed in
     ├── style.css
     ├── script.js
     └── .replica/                 ← Replica-internal state (skipped in listings)
-        ├── meta.json             {id, name, description, createdAt, updatedAt, model}
+        ├── meta.json             {id, name, description, published, runCommand?, createdAt, updatedAt, model}
         ├── chat.json             [{role, content, at, turn?}, …] (compacted)
         └── history/              ← per-turn checkpoints (newest 50 kept)
             └── <turnId>/
                 ├── manifest.json {id, at, message, files: [{path, existed}]}
                 └── files/        pre-turn copies of every touched file
 ```
+
+**Publishing.** `meta.published` gates the `/apps/:id/*` routes: a stable URL
+for the app that works in any browser tab with no workspace attached, serving
+statically or proxying to the project's running process exactly like previews
+(minus the error bridge). Set `HOST=0.0.0.0` to share published apps on your
+network.
 
 **Checkpoints.** Before the streaming parser overwrites or deletes a file, the
 pre-turn version is copied into the turn's history folder. Restoring a
