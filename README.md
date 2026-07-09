@@ -1,8 +1,8 @@
 # Replica
 
 **A fully local, zero-dependency Replit-style AI workspace.** Describe an app in plain
-English; an agent backed by your own [Ollama](https://ollama.com) models plans it, writes
-real files to your disk, and serves it in a live preview — with a code editor and console
+English. An agent backed by your own [Ollama](https://ollama.com) models plans it, writes
+real files to your disk, and serves it in a live preview, with a code editor and console
 alongside. No accounts, no credits, no cloud, no telemetry.
 
 [![CI](https://github.com/21sean/replica/actions/workflows/ci.yml/badge.svg)](https://github.com/21sean/replica/actions/workflows/ci.yml)
@@ -14,18 +14,18 @@ alongside. No accounts, no credits, no cloud, no telemetry.
 
 ## Highlights
 
-- **A real agent loop** — the model streams its thinking, narrates a plan, then emits
+- **A real agent loop.** The model streams its thinking, narrates a plan, then emits
   complete files that are written to disk *as they stream*. Watch the app assemble
   itself, then keep chatting to iterate: the agent sees the current state of every
   project file each turn, including your manual edits.
-- **Zero npm dependencies** — the entire backend is plain Node.js (`http`, `fs`,
+- **Zero npm dependencies.** The entire backend is plain Node.js (`http`, `fs`,
   `child_process`, built-in `fetch`). `git clone`, `node server.js`, done.
-- **Everything on your machine** — projects are plain folders you can open in any
+- **Everything on your machine.** Projects are plain folders you can open in any
   editor. Generated apps use no CDNs and no external calls; pull the network cable and
   everything still runs.
-- **Full workspace UI** — live preview, file-tree code editor (Ctrl+S saves), and a
+- **Full workspace UI.** Live preview, file-tree code editor (Ctrl+S saves), and a
   console for running `node` / `python` scripts inside the project.
-- **Marketing page included** — a landing page at `/` describing the product, minus
+- **Marketing page included.** A landing page at `/` describing the product, minus
   every sales artifact (no pricing, plans, credits, or upsells anywhere).
 
 ## Quickstart
@@ -61,15 +61,15 @@ flowchart LR
     D -- "live preview + editor" --> UI
 ```
 
-The agent follows a strict output protocol: file writes are streamed as
+The agent follows a strict output protocol: file writes stream as
 `<<<FILE: path>>> … <<<END FILE>>>` blocks, parsed incrementally with chunk-boundary
 hold-back so files land on disk the moment each block completes. Chat history is
-compacted (narration + a record of file operations) and the full current file contents
-are rebuilt into the system prompt every turn — so the model always works against the
-truth on disk, never a stale transcript.
+compacted (narration plus a record of file operations), and the full current file
+contents are rebuilt into the system prompt every turn, so the model always works
+against the truth on disk rather than a stale transcript.
 
-Details, diagrams, and design decisions: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** ·
-HTTP reference: **[docs/API.md](docs/API.md)**
+Details, diagrams, and design decisions: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+HTTP reference: **[docs/API.md](docs/API.md)**.
 
 ## Configuration
 
@@ -85,7 +85,7 @@ Everything is environment-driven (see [`lib/config.js`](lib/config.js)):
 | `REPLICA_NUM_CTX` | `32768` | Context window requested from Ollama. |
 | `REPLICA_KEEP_ALIVE` | `20m` | How long Ollama keeps the model loaded. |
 | `REPLICA_EXEC_TIMEOUT` | `60000` | Console command timeout (ms). |
-| `REPLICA_LOG_LEVEL` | `info` | `debug` · `info` · `warn` · `error` |
+| `REPLICA_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
 
 ## Development
 
@@ -95,7 +95,7 @@ npm test       # unit + integration suite (node:test, no test deps either)
 ```
 
 The integration tests boot the full app against a mocked Ollama and verify a complete
-agent turn end to end — streamed events, files written to disk, history persisted,
+agent turn end to end: streamed events, files written to disk, history persisted,
 preview served. CI runs the suite on Linux, Windows, and macOS.
 
 ## Project layout
@@ -120,7 +120,7 @@ replica/
 
 ## Security model
 
-Replica is a personal localhost tool, not a multi-tenant service — see
+Replica is a personal localhost tool, not a multi-tenant service. See
 [SECURITY.md](SECURITY.md) for the full threat model. Highlights: binds to loopback by
 default, all file paths are traversal-checked, console commands are allowlisted to
 local runtimes, and previews render in a sandboxed iframe.
