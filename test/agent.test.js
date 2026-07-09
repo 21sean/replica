@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createAgentParser, createThinkFilter } = require('../lib/agent');
+const { createAgentParser, createThinkFilter, fitMessages } = require('../lib/agent');
 
 /** Collect parser events into arrays for assertion. */
 function collector() {
@@ -121,4 +121,48 @@ test('think filter passes plain content through untouched', () => {
   f.flush();
   assert.equal(thinking.length, 0);
   assert.equal(content.join(''), 'no thinking here, just text');
+});
+
+test('fitMessages keeps everything when the history fits', () => {
+  const chat = [
+    { role: 'user', content: 'make a page' },
+    { role: 'assistant', content: 'done (wrote index.html, 100 chars)' },
+  ];
+  const { messages, dropped } = fitMessages({
+    system: 'SYSTEM', chat, userMessage: 'now add css', numCtx: 32768,
+  });
+  assert.equal(dropped, 0);
+  assert.equal(messages.length, 4);
+  assert.equal(messages[0].role, 'system');
+  assert.equal(messages.at(-1).content, 'now add css');
+});
+
+test('fitMessages drops oldest turns first and notes the elision', () => {
+  const big = 'x'.repeat(4000); // ~1000 tokens each
+  const chat = [];
+  for (let i = 0; i < 20; i++) {
+    chat.push({ role: 'user', content: `${i} ${big}` });
+    chat.push({ role: 'assistant', content: `${i} ok ${big}` });
+  }
+  // budget: 8192 - 1024 reserve ≈ 7168 tokens, so only a few turns fit
+  const { messages, dropped } = fitMessages({
+    system: 'SYSTEM', chat, userMessage: 'continue', numCtx: 8192,
+  });
+  assert.ok(dropped > 0, 'drops some history');
+  assert.match(messages[1].content, /omitted to fit the context window/);
+  // the newest history survives, the oldest goes
+  const bodies = messages.map((m) => m.content).join('\n');
+  assert.match(bodies, /19 ok/);
+  assert.doesNotMatch(bodies, /\b0 ok/);
+  assert.equal(messages.at(-1).content, 'continue');
+});
+
+test('fitMessages survives a system prompt bigger than the window', () => {
+  const chat = [{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'hello' }];
+  const { messages, dropped } = fitMessages({
+    system: 'S'.repeat(100_000), chat, userMessage: 'go', numCtx: 4096,
+  });
+  assert.equal(dropped, 2);
+  assert.equal(messages[0].role, 'system');
+  assert.equal(messages.at(-1).content, 'go');
 });

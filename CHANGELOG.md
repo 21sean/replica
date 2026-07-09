@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Chat history is trimmed oldest-first to fit the model context window
+  (`REPLICA_CTX_RESERVE` controls the reply reserve); long sessions no longer
+  silently overflow `num_ctx`
 - Console commands now reject shell metacharacters (`;`, `&`, `|`, `<`, `>`,
   backticks, `$(`, newlines), closing the chaining bypass of the runtime
   allowlist

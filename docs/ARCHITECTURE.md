@@ -136,6 +136,12 @@ from disk:
   but file bodies are replaced with one-line records like
   `(wrote index.html, 5132 chars)`. File contents would be stale the moment the
   user edits anything; the system prompt already carries the truth.
+- **History is trimmed to the window.** Before each turn, `fitMessages` budgets
+  the request against `REPLICA_NUM_CTX` (minus a reply reserve) using a
+  chars/4 token estimate and drops the oldest turns first, inserting a short
+  "N earlier messages omitted" note so the model knows the transcript is
+  elided. Old turns are the cheapest thing to lose: the system prompt already
+  contains the current state of every file.
 
 This makes manual edits first-class: change a file in the Code tab (or in VS
 Code directly) and the agent's next turn sees exactly what's on disk.

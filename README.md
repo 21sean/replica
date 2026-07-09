@@ -83,6 +83,7 @@ Everything is environment-driven (see [`lib/config.js`](lib/config.js)):
 | `REPLICA_PROJECTS_DIR` | `./projects` | Where generated projects live. |
 | `REPLICA_TEMPERATURE` | `0.4` | Sampling temperature for the agent. |
 | `REPLICA_NUM_CTX` | `32768` | Context window requested from Ollama. |
+| `REPLICA_CTX_RESERVE` | `1024` | Tokens reserved for the model's reply when trimming history to fit the window. |
 | `REPLICA_KEEP_ALIVE` | `20m` | How long Ollama keeps the model loaded. |
 | `REPLICA_EXEC_TIMEOUT` | `60000` | Console command timeout (ms). |
 | `REPLICA_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
