@@ -20,6 +20,9 @@ alongside. No accounts, no credits, no cloud, no telemetry.
   project file each turn, including your manual edits.
 - **Zero npm dependencies.** The entire backend is plain Node.js (`http`, `fs`,
   `child_process`, built-in `fetch`). `git clone`, `node server.js`, done.
+- **Checkpoints on every turn.** Before the agent touches a file, the previous
+  version is snapshotted. A bad generation is one click away from undone:
+  restore any checkpoint from the chat.
 - **Everything on your machine.** Projects are plain folders you can open in any
   editor. Generated apps use no CDNs and no external calls; pull the network cable and
   everything still runs.

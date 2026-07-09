@@ -156,8 +156,19 @@ projects/
     ├── script.js
     └── .replica/                 ← Replica-internal state (skipped in listings)
         ├── meta.json             {id, name, description, createdAt, updatedAt, model}
-        └── chat.json             [{role, content, at}, …] (compacted)
+        ├── chat.json             [{role, content, at, turn?}, …] (compacted)
+        └── history/              ← per-turn checkpoints (newest 50 kept)
+            └── <turnId>/
+                ├── manifest.json {id, at, message, files: [{path, existed}]}
+                └── files/        pre-turn copies of every touched file
 ```
+
+**Checkpoints.** Before the streaming parser overwrites or deletes a file, the
+pre-turn version is copied into the turn's history folder. Restoring a
+checkpoint unwinds every turn from the newest down to and including the target
+(each manifest describes exactly how to undo its own turn), then removes the
+consumed checkpoints. A bad generation is one click away from undone instead
+of being permanent data loss.
 
 Projects are the unit of everything: previews serve from the folder root, the
 console runs with it as cwd, deletion is `rm -rf` of the folder, and backup is

@@ -157,6 +157,69 @@ test('file editing round-trip and traversal rejection', async () => {
   assert.equal(del.status, 200);
 });
 
+async function runChatTurn(id, message = 'build it') {
+  const r = await fetch(`${base}/api/projects/${id}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, model: 'mock-coder:1b' }),
+  });
+  assert.equal(r.status, 200);
+  return (await r.text()).trim().split('\n').map((l) => JSON.parse(l));
+}
+
+test('checkpoints capture pre-turn state and rollback restores it', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Checkpointed' });
+  await json('PUT', `/api/projects/${meta.id}/file?path=index.html`, { content: 'ORIGINAL' });
+
+  const events = await runChatTurn(meta.id);
+  const done = events.find((e) => e.type === 'done');
+  assert.ok(done.turn, 'done event carries the checkpoint id');
+
+  // the turn overwrote index.html and created style.css
+  assert.equal(fs.readFileSync(path.join(projectsDir, meta.id, 'index.html'), 'utf8'), '<!doctype html>\n<h1>Mock</h1>');
+  assert.ok(fs.existsSync(path.join(projectsDir, meta.id, 'style.css')));
+
+  const cps = await json('GET', `/api/projects/${meta.id}/checkpoints`);
+  assert.equal(cps.body.checkpoints.length, 1);
+  assert.equal(cps.body.checkpoints[0].id, done.turn);
+  assert.equal(cps.body.checkpoints[0].files, 2);
+
+  const rb = await json('POST', `/api/projects/${meta.id}/rollback`, { turn: done.turn });
+  assert.equal(rb.status, 200);
+  assert.equal(rb.body.undone, 1);
+
+  // pre-turn state is back: original content restored, new file gone
+  assert.equal(fs.readFileSync(path.join(projectsDir, meta.id, 'index.html'), 'utf8'), 'ORIGINAL');
+  assert.ok(!fs.existsSync(path.join(projectsDir, meta.id, 'style.css')));
+
+  // the checkpoint is consumed, the chat records the rollback
+  const after = await json('GET', `/api/projects/${meta.id}/checkpoints`);
+  assert.equal(after.body.checkpoints.length, 0);
+  const files = await json('GET', `/api/projects/${meta.id}/files`);
+  assert.match(files.body.chat.at(-1).content, /rolled back/);
+  assert.ok(!files.body.chat.some((m) => m.turn), 'stale checkpoint links removed');
+});
+
+test('rollback across multiple turns unwinds newest first', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Multi Turn' });
+  const first = (await runChatTurn(meta.id)).find((e) => e.type === 'done');
+  await json('PUT', `/api/projects/${meta.id}/file?path=index.html`, { content: 'EDITED BETWEEN TURNS' });
+  const second = (await runChatTurn(meta.id)).find((e) => e.type === 'done');
+  assert.ok(first.turn && second.turn && first.turn !== second.turn);
+
+  // restoring the first checkpoint undoes both turns: back to the empty project
+  const rb = await json('POST', `/api/projects/${meta.id}/rollback`, { turn: first.turn });
+  assert.equal(rb.body.undone, 2);
+  assert.ok(!fs.existsSync(path.join(projectsDir, meta.id, 'index.html')));
+  assert.ok(!fs.existsSync(path.join(projectsDir, meta.id, 'style.css')));
+});
+
+test('rollback of an unknown checkpoint returns 404', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'No Checkpoint' });
+  const rb = await json('POST', `/api/projects/${meta.id}/rollback`, { turn: 'nope-0000' });
+  assert.equal(rb.status, 404);
+});
+
 test('exec runs allowlisted commands and rejects everything else', async () => {
   const { body: meta } = await json('POST', '/api/projects', { name: 'Runner' });
 

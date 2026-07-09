@@ -1261,13 +1261,13 @@ async function openProject(meta) {
   }
   for (const m of chat) {
     if (m.role === 'user') addUserMsg(m.content);
-    else renderHistoryTurn(m.content);
+    else renderHistoryTurn(m.content, m.turn);
   }
   scrollChat(true);
   loadTree();
 }
 
-function renderHistoryTurn(content) {
+function renderHistoryTurn(content, turnId) {
   const turn = el('<div class="turn"></div>');
   const narr = [];
   const ops = [];
@@ -1291,7 +1291,44 @@ function renderHistoryTurn(content) {
     }
     turn.appendChild(wrap);
   }
+  if (turnId) turn.appendChild(makeRestoreRow(turnId));
   $('#chatScroll').appendChild(turn);
+}
+
+function makeRestoreRow(turnId) {
+  const row = el(`<div class="turn-restore">
+    <button class="restore-btn" title="Undo this change and everything after it">${ic('undo')}<span>Restore checkpoint</span></button>
+  </div>`);
+  $('button', row).onclick = () => restoreCheckpoint(turnId);
+  return row;
+}
+
+async function restoreCheckpoint(turnId) {
+  if (!current) return;
+  if (streaming) {
+    toast('Agent is working', 'Wait for the current turn to finish before restoring.', 'warn');
+    return;
+  }
+  const ok = await confirmDialog({
+    title: 'Restore checkpoint?',
+    desc: 'Project files return to the state they were in before this change. Later changes are undone too. Chat history is kept, with a note about the rollback.',
+    confirmText: 'Restore',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    const r = await fetch(`/api/projects/${current.id}/rollback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ turn: turnId }),
+    });
+    const j = await r.json();
+    if (!r.ok || j.error) return toast('Restore failed', j.error || `HTTP ${r.status}`, 'warn');
+    toast('Checkpoint restored', `${j.undone} change${j.undone === 1 ? '' : 's'} undone.`, 'ok');
+    openProject(current);
+  } catch (e) {
+    toast('Restore failed', e.message, 'warn');
+  }
 }
 
 function addUserMsg(text) {
@@ -1456,6 +1493,7 @@ async function sendChat(presetText) {
         break;
       case 'done':
         closeThink();
+        if (ev.turn) turn.appendChild(makeRestoreRow(ev.turn));
         break;
     }
     if (narrEl && !narrEl.textContent.trim() && ev.type !== 'token') { narrEl.remove(); narrEl = null; }

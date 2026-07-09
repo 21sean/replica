@@ -84,7 +84,7 @@ model works. Files are written to disk the moment their block completes.
 | `fileDone` | `{path, bytes, truncated}` | File written to disk |
 | `deleted` | `{path}` | File removed |
 | `error` | `{message}` | Non-fatal problem this turn |
-| `done` | `{files, ms}` | Turn complete; summary of all file operations |
+| `done` | `{files, turn, ms}` | Turn complete; `turn` is the checkpoint id (null if no files changed) |
 
 Aborting the request (client disconnect) aborts the upstream Ollama call;
 whatever was produced up to that point is persisted with an `(interrupted)`
@@ -105,6 +105,32 @@ curl -N localhost:4747/api/projects/my-app-3f2a/chat \
 {"type":"fileDone","path":"index.html","bytes":5240,"truncated":false}
 {"type":"done","files":[{"op":"write","path":"index.html","bytes":5240}],"ms":41200}
 ```
+
+## Checkpoints
+
+Every agent turn that touches files snapshots the pre-turn version of each
+touched file first. The 50 most recent checkpoints are kept per project.
+
+### `GET /api/projects/:id/checkpoints`
+
+Newest first:
+
+```json
+{ "checkpoints": [ { "id": "mc41x2-9f3a", "at": 1751980000000, "message": "add a dark mode toggle", "files": 2 } ] }
+```
+
+### `POST /api/projects/:id/rollback`
+
+Body: `{ "turn": "mc41x2-9f3a" }`. Restores the project files to the state
+before that turn by unwinding every checkpoint from the newest down to and
+including the target. Consumed checkpoints are removed (undo, no redo), and a
+rollback note is appended to the chat history so the agent knows.
+
+```json
+{ "ok": true, "undone": 2 }
+```
+
+`404` if the checkpoint does not exist.
 
 ## Console
 

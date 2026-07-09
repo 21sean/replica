@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Per-turn checkpoints: every agent turn snapshots the files it touches before
+  writing, and a Restore checkpoint button on each turn rolls the project back
+  (`GET /checkpoints`, `POST /rollback`)
 - Chat history is trimmed oldest-first to fit the model context window
   (`REPLICA_CTX_RESERVE` controls the reply reserve); long sessions no longer
   silently overflow `num_ctx`
