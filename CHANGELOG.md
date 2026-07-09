@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Bring-your-own model providers: alongside local Ollama, the agent can run on
+  the already-authenticated `claude` CLI (Claude Opus/Sonnet/Haiku) with no API
+  key, reusing your existing `claude login`. Gemini and Copilot CLIs are wired
+  through the same adapter. Providers are auto-detected, so each only appears in
+  the model picker when its CLI is installed; the chat request carries an
+  explicit `provider`, and `/api/models` returns a merged, namespaced catalog.
+  The agent loop, protocol, checkpoints, and RUN loop are provider-agnostic. See
+  `lib/providers.js` and `lib/providers/`.
 - Real publishing: `published` lives in project metadata and gates stable
   `/apps/<project>/` URLs (static or proxied to the running process); the
   Published Projects view links and copies those URLs

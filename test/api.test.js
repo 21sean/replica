@@ -98,6 +98,11 @@ test.before(async () => {
   process.env.OLLAMA_HOST = `http://127.0.0.1:${mock.address().port}`;
   process.env.REPLICA_PROJECTS_DIR = projectsDir;
   process.env.REPLICA_LOG_LEVEL = 'error';
+  // Keep the suite hermetic: don't let a locally-installed claude/gemini/copilot
+  // CLI leak into the mocked-Ollama model catalog.
+  process.env.REPLICA_CLAUDE = '0';
+  process.env.REPLICA_GEMINI = '0';
+  process.env.REPLICA_COPILOT = '0';
 
   // config reads the environment at require time, so import only now
   const { createApp } = require('../lib/app');
@@ -123,7 +128,8 @@ test('health reports the mocked ollama as up', async () => {
 test('models endpoint filters out embedding models', async () => {
   const { status, body } = await json('GET', '/api/models');
   assert.equal(status, 200);
-  assert.deepEqual(body.models.map((m) => m.name), ['mock-coder:1b']);
+  const ollamaModels = body.models.filter((m) => m.provider === 'ollama');
+  assert.deepEqual(ollamaModels.map((m) => m.name), ['mock-coder:1b']);
 });
 
 test('full agent turn: create project, stream chat, files land on disk', async () => {

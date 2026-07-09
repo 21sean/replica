@@ -44,7 +44,10 @@ alongside. No accounts, no credits, no cloud, no telemetry.
 
 ## Quickstart
 
-Requirements: **Node 18+** and **Ollama** running locally with at least one chat model.
+Requirements: **Node 18+** and at least one model provider. The default is
+**Ollama** running locally with a chat model. Alternatively, if you already have
+the **`claude` CLI** installed and logged in, it appears in the model picker
+automatically, with no API key and no Ollama needed.
 
 ```bash
 ollama pull qwen3.6:35b-a3b-q4_K_M   # or any chat model you like
@@ -101,6 +104,11 @@ Everything is environment-driven (see [`lib/config.js`](lib/config.js)):
 | `REPLICA_AGENT_MAX_ITERS` | `3` | Max model rounds per user message when the agent runs commands to verify its work. |
 | `REPLICA_KEEP_ALIVE` | `20m` | How long Ollama keeps the model loaded. |
 | `REPLICA_EXEC_TIMEOUT` | `60000` | Console command timeout (ms). |
+| `REPLICA_CLAUDE` | `1` | Set `0` to hide the Claude CLI provider. Needs `claude` installed and logged in; no API key. |
+| `REPLICA_CLAUDE_BIN` | `claude` | Path to the `claude` binary (`claude.exe` on Windows). |
+| `REPLICA_CLAUDE_EFFORT` | `medium` | Reasoning effort passed to `claude`: `low`..`max`. |
+| `REPLICA_CLAUDE_MAX_OUTPUT` | `32000` | Max output tokens per Claude reply (full files can be large). |
+| `REPLICA_GEMINI` / `REPLICA_COPILOT` | `1` | Set `0` to hide the Gemini / Copilot CLI providers (shown only when installed). |
 | `REPLICA_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
 
 ## Development

@@ -458,8 +458,13 @@ async function checkHealth() {
   const foot = $('#ollamaStatus');
   try {
     health = await (await fetch('/api/health')).json();
-    foot.className = 'sb-foot ' + (health.ollama ? 'ok' : 'bad');
-    $('.st-text', foot).textContent = health.ollama ? 'Ollama connected' : 'Ollama offline';
+    const up = [];
+    if (health.ollama) up.push('Ollama');
+    if (health.claude) up.push('Claude');
+    if (health.gemini) up.push('Gemini');
+    if (health.copilot) up.push('Copilot');
+    foot.className = 'sb-foot ' + (up.length ? 'ok' : 'bad');
+    $('.st-text', foot).textContent = up.length ? up.join(', ') + ' connected' : 'No model provider';
   } catch {
     foot.className = 'sb-foot bad';
     $('.st-text', foot).textContent = 'Server offline';
@@ -471,14 +476,16 @@ async function loadModels() {
     const j = await (await fetch('/api/models')).json();
     models = j.models || [];
   } catch { models = []; }
-  if (!store.model || !models.some((m) => m.name === store.model)) {
-    const pref = models.find((m) => /qwen3/i.test(m.name)) || models[0];
-    if (pref) { ws.model = pref.name; saveWorkspace(); }
+  if (!store.model || !models.some((m) => m.id === store.model)) {
+    const pref = models.find((m) => /qwen3/i.test(m.id)) || models[0];
+    if (pref) { ws.model = pref.id; saveWorkspace(); }
   }
   syncModelSelects();
 }
 
-const modelOptions = () => models.map((m) => ({ value: m.name, label: m.name, sub: m.params || '' }));
+const modelOptions = () => models.map((m) => ({ value: m.id, label: m.label || m.name, sub: m.sub || m.params || '' }));
+/** Friendly display name for the currently selected model id. */
+const modelLabel = (id = store.model) => (models.find((m) => m.id === id) || {}).label || id;
 function syncModelSelects() {
   $$('.select[data-model-select]').forEach((b) => b._render?.());
 }
@@ -1460,7 +1467,7 @@ async function sendChat(presetText) {
   $('#chatStop').classList.remove('hidden');
 
   const turn = el('<div class="turn"></div>');
-  const status = el(`<div class="status-line"><span class="spinner"></span><span>Waking ${esc(store.model)}</span></div>`);
+  const status = el(`<div class="status-line"><span class="spinner"></span><span>Waking ${esc(modelLabel())}</span></div>`);
   turn.appendChild(status);
   $('#chatScroll').appendChild(turn);
   scrollChat(true);
@@ -1551,10 +1558,11 @@ async function sendChat(presetText) {
   streamAbort = new AbortController();
   let gotFirst = false;
   try {
+    const sel = models.find((m) => m.id === store.model) || {};
     const resp = await fetch(`/api/projects/${current.id}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, model: store.model }),
+      body: JSON.stringify({ message: text, model: sel.model || store.model, provider: sel.provider || 'ollama' }),
       signal: streamAbort.signal,
     });
     const reader = resp.body.getReader();
