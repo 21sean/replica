@@ -111,8 +111,10 @@ curl -N localhost:4747/api/projects/my-app-3f2a/chat \
 ### `POST /api/projects/:id/exec`
 
 Body: `{ "command": "node script.js" }`. Commands must start with an
-allowlisted runtime (`node`, `python`/`python3`/`py`, `pip`, `npm`, `npx`) and run
-with the project folder as cwd, subject to `REPLICA_EXEC_TIMEOUT` (60 s default).
+allowlisted runtime (`node`, `python`/`python3`/`py`, `pip`, `npm`, `npx`),
+must not contain shell metacharacters (`;`, `&`, `|`, `<`, `>`, backticks,
+`$(`, newlines), and run with the project folder as cwd, subject to
+`REPLICA_EXEC_TIMEOUT` (60 s default).
 
 ```json
 { "ok": true, "code": 0, "timedOut": false, "output": "42\n" }

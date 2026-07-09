@@ -15,7 +15,9 @@ below are defense-in-depth for that scenario, not multi-tenant isolation.
   paths. The agent cannot write outside its project folder.
 - **Console command allowlist.** `/exec` only accepts commands starting with
   local runtimes (`node`, `python`, `npm`, …), runs them with the project as
-  cwd, and enforces a timeout and output cap.
+  cwd, and enforces a timeout and output cap. Shell metacharacters
+  (`;`, `&`, `|`, `<`, `>`, backticks, `$(`, newlines) are rejected outright,
+  so an allowlisted prefix cannot chain into arbitrary commands.
 - **Sandboxed previews.** Generated apps render in an iframe with a `sandbox`
   attribute; preview responses are served `Cache-Control: no-store` with
   `X-Content-Type-Options: nosniff`.
