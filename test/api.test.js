@@ -221,7 +221,8 @@ test('preview HTML gets the error bridge injected', async () => {
   });
   const prev = await fetch(`${base}/preview/${meta.id}/`);
   const html = await prev.text();
-  assert.match(html, /<script src="\/replica-bridge\.js"><\/script><\/body>/);
+  // injected right after <body> so it loads before any project script
+  assert.match(html, /<body><script src="\/replica-bridge\.js"><\/script>/);
   // the bridge itself is served
   const bridge = await fetch(`${base}/replica-bridge.js`);
   assert.equal(bridge.status, 200);
