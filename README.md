@@ -28,6 +28,9 @@ alongside. No accounts, no credits, no cloud, no telemetry.
   everything still runs.
 - **Full workspace UI.** Live preview, file-tree code editor (Ctrl+S saves), and a
   console for running `node` / `python` scripts inside the project.
+- **Real server apps, not just static sites.** Press Run and Replica starts your
+  project's dev server on a free port, streams its logs to the console, and
+  proxies the preview to it, Node and Python backends included.
 - **Marketing page included.** A landing page at `/` describing the product, minus
   every sales artifact (no pricing, plans, credits, or upsells anywhere).
 

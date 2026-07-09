@@ -82,7 +82,8 @@ test.before(async () => {
   base = `http://127.0.0.1:${app.address().port}`;
 });
 
-test.after(() => {
+test.after(async () => {
+  await require('../lib/proc').stopAll();
   app?.close();
   mock?.close();
   fs.rmSync(projectsDir, { recursive: true, force: true });
@@ -230,6 +231,59 @@ test('exec runs allowlisted commands and rejects everything else', async () => {
 
   const bad = await json('POST', `/api/projects/${meta.id}/exec`, { command: 'curl http://example.com' });
   assert.equal(bad.status, 400);
+});
+
+test('run starts a server process, preview proxies to it, stop kills it', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Served App' });
+  const server =
+    "const http = require('http');\n" +
+    "http.createServer((req, res) => {\n" +
+    "  res.writeHead(200, { 'Content-Type': 'text/plain' });\n" +
+    "  res.end('proc says hi from ' + req.url);\n" +
+    "}).listen(process.env.PORT, '127.0.0.1');\n";
+  await json('PUT', `/api/projects/${meta.id}/file?path=srv.js`, { content: server });
+
+  const bad = await json('POST', `/api/projects/${meta.id}/run`, { command: 'curl http://example.com' });
+  assert.equal(bad.status, 400);
+
+  const started = await json('POST', `/api/projects/${meta.id}/run`, { command: 'node srv.js' });
+  assert.equal(started.status, 200);
+  assert.ok(started.body.running);
+  assert.ok(started.body.port > 0);
+
+  // wait for the port probe to mark the process proxy-ready
+  let up = false;
+  for (let i = 0; i < 100 && !up; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    up = (await json('GET', `/api/projects/${meta.id}/run`)).body.up;
+  }
+  assert.ok(up, 'process becomes proxy-ready');
+
+  // the preview now proxies to the running server instead of serving files
+  const prev = await fetch(`${base}/preview/${meta.id}/some/path`);
+  assert.equal(prev.status, 200);
+  assert.match(await prev.text(), /proc says hi from \/some\/path/);
+
+  // the run command is remembered on the project
+  const files = await json('GET', `/api/projects/${meta.id}/files`);
+  assert.equal(files.body.meta.runCommand, 'node srv.js');
+
+  // logs are readable incrementally
+  const logs = await json('GET', `/api/projects/${meta.id}/logs?after=0`);
+  assert.ok(logs.body.lines.some((l) => /PORT=/.test(l.text)));
+
+  const stopped = await json('POST', `/api/projects/${meta.id}/stop`);
+  assert.equal(stopped.status, 200);
+  let running = true;
+  for (let i = 0; i < 50 && running; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    running = (await json('GET', `/api/projects/${meta.id}/run`)).body.running;
+  }
+  assert.ok(!running, 'process is gone after stop');
+
+  // preview falls back to static serving
+  const staticPrev = await fetch(`${base}/preview/${meta.id}/srv.js`);
+  assert.match(await staticPrev.text(), /createServer/);
 });
 
 test('project deletion removes the directory', async () => {

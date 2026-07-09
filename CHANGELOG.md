@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Run button: start a long-lived dev server per project (`POST /run`, `/stop`,
+  incremental `/logs`); the process gets a free port via `PORT` and the
+  preview proxies to it once it accepts connections, so Node and Python
+  server apps preview like static sites
 - Per-turn checkpoints: every agent turn snapshots the files it touches before
   writing, and a Restore checkpoint button on each turn rolls the project back
   (`GET /checkpoints`, `POST /rollback`)

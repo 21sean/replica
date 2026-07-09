@@ -9,7 +9,7 @@ noted. Errors are always `{ "error": string }` with an appropriate status code.
 |---|---|---|
 | GET | `/` | Marketing page |
 | GET | `/agent` | Workspace app |
-| GET | `/preview/:id/*` | Serves project files statically (`index.html` default, `Cache-Control: no-store`) |
+| GET | `/preview/:id/*` | Serves project files statically (`index.html` default, `Cache-Control: no-store`). If the project has a running process that accepts connections, the preview proxies to it instead. |
 
 ## System
 
@@ -147,3 +147,33 @@ must not contain shell metacharacters (`;`, `&`, `|`, `<`, `>`, backticks,
 ```
 
 Disallowed commands return `400`.
+
+## Run (long-lived process)
+
+One dev server per project. The child process gets a free port in its `PORT`
+environment variable; once it accepts connections on that port, `/preview/:id/*`
+proxies to it (static file serving resumes when the process stops).
+
+### `POST /api/projects/:id/run`
+
+Body: `{ "command": "node server.js" }` (same allowlist as `/exec`). Restarts
+the process if one is already running and remembers the command in the project
+metadata (`meta.runCommand`).
+
+```json
+{ "ok": true, "running": true, "up": false, "command": "node server.js", "port": 52144, "startedAt": 1751980000000, "exitCode": null }
+```
+
+### `GET /api/projects/:id/run` — current status (same shape, no `ok`).
+
+### `POST /api/projects/:id/stop` — tree-kills the process.
+
+### `GET /api/projects/:id/logs?after=N`
+
+Incremental output read; `lines[].i` is a monotonic cursor, pass the returned
+`last` back as `after`. Streams are `out`, `err`, and `sys` (Replica's own
+markers such as start/exit lines). The newest 2000 lines are kept.
+
+```json
+{ "lines": [ { "i": 1, "s": "sys", "text": "$ node server.js  (PORT=52144)" } ], "last": 1, "running": true, "up": true }
+```

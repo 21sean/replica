@@ -537,6 +537,18 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .ws-toolbar { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: none; }
 .ws-title { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ws-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.btn-run { background: var(--green); color: #06130C; }
+.btn-run:hover { background: #4AD68D; }
+.btn-run svg { width: 13px; height: 13px; }
+.btn-stoprun { background: var(--red); color: #fff; }
+.btn-stoprun:hover { background: #D93A31; }
+.btn-stoprun svg { width: 13px; height: 13px; }
+.run-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: var(--muted); margin-right: 4px; white-space: nowrap;
+}
+.run-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); flex: none; }
+.run-status.up::before { background: var(--green); }
 .ws-body { flex: 1; min-height: 0; display: flex; }
 
 .chat-pane { width: 400px; min-width: 320px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }

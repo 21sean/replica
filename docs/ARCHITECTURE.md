@@ -49,7 +49,8 @@ flowchart TB
 | `lib/routes.js` | JSON API; the streaming `/chat` endpoint that orchestrates an agent turn |
 | `lib/agent.js` | The protocol prompt, per-turn system prompt (embeds live file contents), and two streaming parsers |
 | `lib/ollama.js` | Thin client: model listing, health, NDJSON chat stream as an async generator |
-| `lib/store.js` | Projects as plain directories; metadata + chat history under `.replica/` |
+| `lib/store.js` | Projects as plain directories; metadata + chat history + checkpoints under `.replica/` |
+| `lib/proc.js` | Long-running project processes: spawn with a free `PORT`, readiness probe, log ring buffer, tree-kill |
 | `lib/security.js` | `safeJoin` traversal guard; console command allowlist |
 | `lib/httpx.js`, `lib/log.js` | Request/response helpers, MIME table, leveled logging |
 
@@ -173,6 +174,23 @@ of being permanent data loss.
 Projects are the unit of everything: previews serve from the folder root, the
 console runs with it as cwd, deletion is `rm -rf` of the folder, and backup is
 "copy the folder".
+
+## Running server apps
+
+Static projects are served straight from disk. For server apps, the Run button
+starts one long-lived process per project (`lib/proc.js`):
+
+1. Replica finds a free loopback port and spawns the command with it in `PORT`.
+2. A probe reconnects every 300 ms until the app accepts connections.
+3. From that moment `/preview/:id/*` proxies to `127.0.0.1:<port>` (plain
+   `http.request` piping, no dependency); when the process exits or is
+   stopped, the preview falls back to static file serving.
+4. stdout/stderr land in a ring buffer (newest 2000 lines) that the Console
+   tab polls incrementally with a cursor.
+
+Stop is a tree-kill (`taskkill /T /F` on Windows, process-group signal
+elsewhere) so shell-spawned grandchildren die too. All processes are killed on
+server shutdown and on project deletion.
 
 ## Design decisions
 

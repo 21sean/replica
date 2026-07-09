@@ -30,6 +30,11 @@ let streamAbort = null;
 let openFile = null;
 let editorDirty = false;
 let previewTimer = null;
+let runState = { running: false, up: false };
+let runPollTimer = null;
+let logCursor = 0;
+
+const CON_HINT = '<span class="con-hint">Run scripts inside this project, e.g.  node script.js  or  python main.py\nPress Run in the toolbar to start a server; its logs stream here.</span>';
 
 const ROLES = ['Developer', 'Product Manager', 'Startup Founder', 'Business Owner',
   'Data Scientist / Analyst', 'Designer', 'Marketing and Sales', 'Business Operations',
@@ -1192,9 +1197,11 @@ function renderCmdk() {
 
 // ─────────────────────────────────────────────── workspace (IDE)
 function wireWorkspace() {
-  $('#wsBack').onclick = () => { current = null; showView('projects'); };
+  $('#wsBack').onclick = () => { current = null; clearTimeout(runPollTimer); showView('projects'); };
   $('#btnOpenTab').onclick = () => { if (current) window.open(`/preview/${current.id}/`, '_blank'); };
   $('#btnRefresh').onclick = refreshPreview;
+  $('#btnRun').onclick = startRun;
+  $('#btnStop').onclick = stopRun;
 
   const wsModelBtn = $('#wsModel');
   wsModelBtn.dataset.modelSelect = '1';
@@ -1252,6 +1259,19 @@ async function openProject(meta) {
   $('#chatScroll').innerHTML = '';
   showView('workspace');
   refreshPreview();
+
+  // pick up this project's process state (it keeps running across navigation)
+  clearTimeout(runPollTimer);
+  logCursor = 0;
+  $('#consoleOut').innerHTML = CON_HINT;
+  runState = { running: false, up: false };
+  setRunUI();
+  fetch(`/api/projects/${meta.id}/run`).then((r) => r.json()).then((s) => {
+    if (!current || current.id !== meta.id) return;
+    runState = s;
+    setRunUI();
+    if (s.running) schedRunPoll();
+  }).catch(() => {});
 
   const j = await (await fetch(`/api/projects/${meta.id}/files`)).json();
   current = j.meta || meta;
@@ -1650,6 +1670,113 @@ async function deleteFile() {
   closeEditor();
   loadTree();
   schedulePreview();
+}
+
+// ─────────────────────────────────────────────── run (long-lived process)
+function guessRunCommand(files) {
+  const names = files.map((f) => f.path);
+  if (names.includes('server.js')) return 'node server.js';
+  if (names.includes('server.py')) return 'python server.py';
+  if (names.includes('app.py')) return 'python app.py';
+  if (names.includes('main.py')) return 'python main.py';
+  if (names.includes('app.js') && !names.includes('index.html')) return 'node app.js';
+  return '';
+}
+
+function setRunUI() {
+  const running = !!runState.running;
+  $('#btnRun').classList.toggle('hidden', running);
+  $('#btnStop').classList.toggle('hidden', !running);
+  const st = $('#runStatus');
+  st.classList.toggle('hidden', !running);
+  if (running) {
+    st.textContent = runState.up ? `live on :${runState.port}` : 'starting';
+    st.classList.toggle('up', !!runState.up);
+  }
+}
+
+async function startRun() {
+  if (!current) return;
+  let guess = current.runCommand || '';
+  if (!guess) {
+    try {
+      const j = await (await fetch(`/api/projects/${current.id}/files`)).json();
+      guess = (j.meta && j.meta.runCommand) || guessRunCommand(j.files || []);
+    } catch { /* fall through to the default */ }
+  }
+  const command = await promptDialog({
+    title: 'Run project',
+    desc: 'Runs in the project folder with a PORT environment variable. As soon as the process listens on that port, the preview switches to it.',
+    label: 'Command',
+    value: guess || 'node server.js',
+    confirmText: 'Run',
+  });
+  if (!command) return;
+  try {
+    const r = await fetch(`/api/projects/${current.id}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command }),
+    });
+    const s = await r.json();
+    if (!r.ok || s.error) return toast('Could not run', s.error || `HTTP ${r.status}`, 'warn');
+    current.runCommand = command;
+    logCursor = 0;
+    runState = s;
+    setRunUI();
+    schedRunPoll();
+    toast('Process started', command, 'ok');
+  } catch (e) {
+    toast('Could not run', e.message, 'warn');
+  }
+}
+
+async function stopRun() {
+  if (!current) return;
+  try {
+    await fetch(`/api/projects/${current.id}/stop`, { method: 'POST' });
+  } catch { /* server gone */ }
+  await pollRunOnce();  // collect the exit line
+  runState = { running: false, up: false };
+  setRunUI();
+  refreshPreview();
+}
+
+async function pollRunOnce() {
+  if (!current) return;
+  try {
+    const j = await (await fetch(`/api/projects/${current.id}/logs?after=${logCursor}`)).json();
+    const wasUp = !!runState.up;
+    runState = j;
+    logCursor = j.last ?? logCursor;
+    appendRunLogs(j.lines || []);
+    setRunUI();
+    if (wasUp !== !!j.up) refreshPreview();
+  } catch {
+    runState = { running: false, up: false };
+    setRunUI();
+  }
+}
+
+function schedRunPoll() {
+  clearTimeout(runPollTimer);
+  runPollTimer = setTimeout(async () => {
+    await pollRunOnce();
+    if (runState.running && current) schedRunPoll();
+  }, 1000);
+}
+
+function appendRunLogs(lines) {
+  if (!lines.length) return;
+  const out = $('#consoleOut');
+  out.querySelector('.con-hint')?.remove();
+  for (const l of lines) {
+    const text = esc(l.text.replace(/\x1b\[[0-9;]*m/g, ''));
+    if (l.s === 'sys') out.innerHTML += `<span class="con-cmd">${text}</span>\n`;
+    else if (l.s === 'err') out.innerHTML += `<span class="con-err">${text}</span>\n`;
+    else out.innerHTML += text + '\n';
+  }
+  out.scrollTop = out.scrollHeight;
 }
 
 // ─────────────────────────────────────────────── console

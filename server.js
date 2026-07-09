@@ -12,6 +12,7 @@
 
 const config = require('./lib/config');
 const log = require('./lib/log');
+const proc = require('./lib/proc');
 const { createApp } = require('./lib/app');
 
 log.setLevel(config.logLevel);
@@ -37,6 +38,7 @@ function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
   log.info(`${signal} received, shutting down`);
+  proc.stopAll();
   server.close(() => {
     log.info('server closed');
     process.exit(0);

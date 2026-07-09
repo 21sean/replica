@@ -62,6 +62,7 @@
     <symbol id="i-brush" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m14 5 5 5-8.5 8.5a3.54 3.54 0 0 1-5-5z"/><path d="m13 6 3-3a2.1 2.1 0 0 1 3 3l-3 3"/></symbol>
     <symbol id="i-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></symbol>
     <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-run" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l11-6.8a.8.8 0 0 0 0-1.4l-11-6.8a.8.8 0 0 0-1.2.7z"/></symbol>
     <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5H6a1.5 1.5 0 0 0-1.5 1.5v16A1.5 1.5 0 0 0 6 21.5h12a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 2.5V8h5.5"/></symbol>
   </defs>
@@ -253,6 +254,9 @@
         <button class="icon-btn" id="wsBack" title="Back to projects"><svg><use href="#i-arrow-l"/></svg></button>
         <span class="ws-title" id="wsTitle">Project</span>
         <div class="ws-tools">
+          <span class="run-status hidden" id="runStatus"></span>
+          <button class="btn btn-run btn-sm" id="btnRun" title="Start the project's dev server"><svg><use href="#i-run"/></svg> Run</button>
+          <button class="btn btn-stoprun btn-sm hidden" id="btnStop" title="Stop the running process"><svg><use href="#i-stop"/></svg> Stop</button>
           <button class="select select-ghost" id="wsModel" aria-haspopup="listbox" title="Model">
             <span class="sel-val">Model</span><svg><use href="#i-chev-d"/></svg>
           </button>
@@ -304,7 +308,8 @@
               </div>
             </div>
             <div class="ptab-view hidden" id="tab-console">
-              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project, e.g.  node script.js  or  python main.py</span></div>
+              <div class="console-out" id="consoleOut"><span class="con-hint">Run scripts inside this project, e.g.  node script.js  or  python main.py
+Press Run in the toolbar to start a server; its logs stream here.</span></div>
               <div class="console-in">
                 <span class="con-prompt">$</span>
                 <input id="consoleCmd" spellcheck="false" placeholder="node script.js">
@@ -376,6 +381,7 @@
       <p><b>Iterating.</b> Keep chatting in the project: make the header sticky, add dark mode, fix that bug. The Agent sees your current files each turn, including manual edits.</p>
       <p><b>Code tab.</b> Full editor over the project files. <code>Ctrl+S</code> saves. Your edits become part of the Agent's context.</p>
       <p><b>Console tab.</b> Run <code>node file.js</code> or <code>python file.py</code> inside the project folder, with a 60 second limit.</p>
+      <p><b>Server apps.</b> Press <b>Run</b> in the toolbar to start a dev server. It gets a free port in <code>PORT</code>, its logs stream to the Console tab, and the preview proxies to it while it runs.</p>
       <p><b>Models.</b> Bigger models build better apps. Thinking models show their reasoning, and you can collapse it with a click. The first response after idle can take a while as the model loads into memory.</p>
     </div>
   </div>
