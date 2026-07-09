@@ -37,19 +37,43 @@ function startMockOllama() {
         }));
       }
       if (req.url === '/api/chat') {
-        res.writeHead(200, { 'Content-Type': 'application/x-ndjson' });
-        const chunks = [
-          { message: { role: 'assistant', thinking: 'planning the page…' } },
-          { message: { role: 'assistant', content: 'Building a tiny page.\n<<<FILE: index.html>>>\n<!doctype html>\n<h1>' } },
-          { message: { role: 'assistant', content: 'Mock</h1>\n<<<END FILE>>>\n' } },
-          { message: { role: 'assistant', content: '<<<FILE: style.css>>>\nh1 { color: teal; }\n<<<END FILE>>>\nDone.' } },
-          { done: true },
-        ];
-        let i = 0;
-        const t = setInterval(() => {
-          if (i >= chunks.length) { clearInterval(t); return res.end(); }
-          res.write(JSON.stringify(chunks[i++]) + '\n');
-        }, 5);
+        let raw = '';
+        req.on('data', (c) => { raw += c; });
+        req.on('end', () => {
+          res.writeHead(200, { 'Content-Type': 'application/x-ndjson' });
+          let lastUser = '';
+          try {
+            const msgs = JSON.parse(raw).messages || [];
+            lastUser = [...msgs].reverse().find((m) => m.role === 'user')?.content || '';
+          } catch { /* default script */ }
+          let chunks;
+          if (/^CONSOLE OUTPUT/.test(lastUser)) {
+            // second round of the RUN loop: the mock reads its own output back
+            chunks = [
+              { message: { role: 'assistant', content: /42/.test(lastUser) ? 'Verified: the check printed 42.' : 'The check output was unexpected.' } },
+              { done: true },
+            ];
+          } else if (/verify/i.test(lastUser)) {
+            chunks = [
+              { message: { role: 'assistant', content: 'Writing a check, then running it.\n<<<FILE: check.js>>>\nconsole.log(6*7);\n<<<END FILE>>>\n' } },
+              { message: { role: 'assistant', content: '<<<RUN: node check.js>>>\n' } },
+              { done: true },
+            ];
+          } else {
+            chunks = [
+              { message: { role: 'assistant', thinking: 'planning the page…' } },
+              { message: { role: 'assistant', content: 'Building a tiny page.\n<<<FILE: index.html>>>\n<!doctype html>\n<h1>' } },
+              { message: { role: 'assistant', content: 'Mock</h1>\n<<<END FILE>>>\n' } },
+              { message: { role: 'assistant', content: '<<<FILE: style.css>>>\nh1 { color: teal; }\n<<<END FILE>>>\nDone.' } },
+              { done: true },
+            ];
+          }
+          let i = 0;
+          const t = setInterval(() => {
+            if (i >= chunks.length) { clearInterval(t); return res.end(); }
+            res.write(JSON.stringify(chunks[i++]) + '\n');
+          }, 5);
+        });
         return;
       }
       res.writeHead(404);
@@ -167,6 +191,42 @@ async function runChatTurn(id, message = 'build it') {
   assert.equal(r.status, 200);
   return (await r.text()).trim().split('\n').map((l) => JSON.parse(l));
 }
+
+test('agent RUN loop executes the command and feeds output back', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Verifier' });
+  const events = await runChatTurn(meta.id, 'please verify your work');
+
+  const run = events.find((e) => e.type === 'run');
+  assert.ok(run, 'streams the run request');
+  assert.equal(run.command, 'node check.js');
+
+  const result = events.find((e) => e.type === 'runResult');
+  assert.ok(result, 'streams the run result');
+  assert.equal(result.code, 0);
+  assert.match(result.output, /42/);
+
+  // the second model round saw the output and narrated it
+  const narration = events.filter((e) => e.type === 'token').map((e) => e.text).join('');
+  assert.match(narration, /Verified: the check printed 42/);
+
+  // compacted history records the run
+  const files = await json('GET', `/api/projects/${meta.id}/files`);
+  assert.match(files.body.chat.at(-1).content, /\(ran node check\.js -> exit 0\)/);
+});
+
+test('preview HTML gets the error bridge injected', async () => {
+  const { body: meta } = await json('POST', '/api/projects', { name: 'Bridged' });
+  await json('PUT', `/api/projects/${meta.id}/file?path=index.html`, {
+    content: '<!doctype html><html><body><h1>Hi</h1></body></html>',
+  });
+  const prev = await fetch(`${base}/preview/${meta.id}/`);
+  const html = await prev.text();
+  assert.match(html, /<script src="\/replica-bridge\.js"><\/script><\/body>/);
+  // the bridge itself is served
+  const bridge = await fetch(`${base}/replica-bridge.js`);
+  assert.equal(bridge.status, 200);
+  assert.match(await bridge.text(), /preview-error/);
+});
 
 test('checkpoints capture pre-turn state and rollback restores it', async () => {
   const { body: meta } = await json('POST', '/api/projects', { name: 'Checkpointed' });

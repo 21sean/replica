@@ -606,6 +606,19 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .fileop.warn .st { color: var(--yellow); }
 .fileop .fpath { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fileop .fsize { margin-left: auto; font-size: 11px; color: var(--dim); font-family: var(--font); }
+.runop { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); overflow: hidden; }
+.runop-head { display: flex; align-items: center; gap: 9px; font-size: 12.5px; font-family: var(--mono); padding: 7px 11px; color: var(--muted); cursor: pointer; }
+.runop.done .runop-head { color: #C9D4DE; }
+.runop .st { width: 15px; height: 15px; display: grid; place-items: center; flex: none; }
+.runop .st svg { width: 13px; height: 13px; }
+.runop.done .st { color: var(--green); }
+.runop.fail .st { color: var(--red-soft); }
+.runop .rcmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run-out {
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--muted);
+  background: var(--bg-deep); border-top: 1px solid var(--border-2); padding: 8px 11px; margin: 0;
+  white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto;
+}
 .turn-restore { display: flex; margin-top: -2px; }
 .restore-btn {
   display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-family: var(--font);
@@ -637,6 +650,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .panel-body { flex: 1; min-height: 0; position: relative; background: var(--surface); }
 .ptab-view { position: absolute; inset: 0; display: flex; flex-direction: column; }
 #previewFrame { flex: 1; border: none; background: #fff; }
+.preview-errbar {
+  position: absolute; left: 12px; right: 12px; bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--modal); border: 1px solid rgba(215, 168, 62, .5); border-radius: var(--r-md);
+  padding: 9px 12px; font-size: 12.5px; color: var(--text);
+  box-shadow: var(--shadow-menu);
+}
+.preview-errbar > svg { width: 16px; height: 16px; color: var(--yellow); flex: none; }
+.preview-errbar span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* code tab */
 .code-layout { flex: 1; display: flex; min-height: 0; }

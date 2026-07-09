@@ -6,13 +6,14 @@ const { createAgentParser, createThinkFilter, fitMessages } = require('../lib/ag
 
 /** Collect parser events into arrays for assertion. */
 function collector() {
-  const ev = { narration: [], files: [], deletes: [], starts: [] };
+  const ev = { narration: [], files: [], deletes: [], starts: [], runs: [] };
   const parser = createAgentParser({
     narration: (t) => ev.narration.push(t),
     fileStart: (p) => ev.starts.push(p),
     fileChunk: () => {},
     fileDone: (p, content, truncated) => ev.files.push({ path: p, content, truncated }),
     del: (p) => ev.deletes.push(p),
+    run: (c) => ev.runs.push(c),
   });
   return { ev, parser, narrationText: () => ev.narration.join('') };
 }
@@ -94,6 +95,29 @@ test('file content containing angle brackets and partial markers survives', () =
   parser.finish();
   assert.equal(ev.files.length, 1);
   assert.equal(ev.files[0].content, body);
+});
+
+test('parses RUN markers between files and narration', () => {
+  const { ev, parser, narrationText } = collector();
+  const src =
+    'Writing a check.\n' +
+    '<<<FILE: check.js>>>\nconsole.log(6*7);\n<<<END FILE>>>\n' +
+    '<<<RUN: node check.js>>>\n' +
+    'Waiting for the output.';
+  for (let i = 0; i < src.length; i += 3) parser.feed(src.slice(i, i + 3));
+  parser.finish();
+  assert.deepEqual(ev.runs, ['node check.js']);
+  assert.equal(ev.files.length, 1);
+  assert.doesNotMatch(narrationText(), /<<<|RUN/);
+});
+
+test('RUN marker split across chunk boundaries still parses', () => {
+  const { ev, parser } = collector();
+  parser.feed('checking <<<RU');
+  parser.feed('N: python te');
+  parser.feed('st.py>>> done');
+  parser.finish();
+  assert.deepEqual(ev.runs, ['python test.py']);
 });
 
 test('think filter separates inline <think> spans from content', () => {

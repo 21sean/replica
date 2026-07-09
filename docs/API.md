@@ -83,8 +83,15 @@ model works. Files are written to disk the moment their block completes.
 | `fileChunk` | `{path, bytes}` | Progress inside a file block |
 | `fileDone` | `{path, bytes, truncated}` | File written to disk |
 | `deleted` | `{path}` | File removed |
+| `run` | `{command}` | The agent requested a console command |
+| `runResult` | `{command, ok, code, timedOut, output}` | The command ran; its output goes back to the model for another round |
 | `error` | `{message}` | Non-fatal problem this turn |
-| `done` | `{files, turn, ms}` | Turn complete; `turn` is the checkpoint id (null if no files changed) |
+| `done` | `{files, runs, turn, ms}` | Turn complete; `turn` is the checkpoint id (null if no files changed) |
+
+A turn can span several model rounds: when the agent emits `<<<RUN: command>>>`
+markers, the commands execute (same allowlist as `/exec`) after its reply
+finishes, the output is appended to the conversation, and the model is called
+again, up to `REPLICA_AGENT_MAX_ITERS` rounds (default 3).
 
 Aborting the request (client disconnect) aborts the upstream Ollama call;
 whatever was produced up to that point is persisted with an `(interrupted)`

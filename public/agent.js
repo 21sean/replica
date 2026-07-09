@@ -1202,6 +1202,7 @@ function wireWorkspace() {
   $('#btnRefresh').onclick = refreshPreview;
   $('#btnRun').onclick = startRun;
   $('#btnStop').onclick = stopRun;
+  wirePreviewErrors();
 
   const wsModelBtn = $('#wsModel');
   wsModelBtn.dataset.modelSelect = '1';
@@ -1294,8 +1295,10 @@ function renderHistoryTurn(content, turnId) {
   for (const line of content.split('\n')) {
     const w = line.match(/^\(wrote (.+?), \d+ chars(, TRUNCATED.*)?\)$/) || line.match(/^\(wrote (.+?)\)$/);
     const d = line.match(/^\(deleted (.+?)\)$/);
+    const r = line.match(/^\(ran (.+?) -> exit (\d+)\)$/);
     if (w) ops.push({ path: w[1], del: false });
     else if (d) ops.push({ path: d[1], del: true });
+    else if (r) ops.push({ path: r[1], run: true, code: parseInt(r[2], 10) });
     else if (line !== '(interrupted)') narr.push(line);
   }
   if (narr.join('').trim()) {
@@ -1306,8 +1309,13 @@ function renderHistoryTurn(content, turnId) {
   if (ops.length) {
     const wrap = el('<div class="fileops"></div>');
     for (const o of ops) {
-      wrap.appendChild(el(`<div class="fileop done${o.del ? ' del' : ''}">
-        <span class="st">${ic(o.del ? 'x' : 'check')}</span><span class="fpath">${esc(o.path)}</span></div>`));
+      if (o.run) {
+        wrap.appendChild(el(`<div class="runop done${o.code === 0 ? '' : ' fail'}">
+          <div class="runop-head"><span class="st">${ic(o.code === 0 ? 'check' : 'x')}</span><span class="rcmd">$ ${esc(o.path)}</span></div></div>`));
+      } else {
+        wrap.appendChild(el(`<div class="fileop done${o.del ? ' del' : ''}">
+          <span class="st">${ic(o.del ? 'x' : 'check')}</span><span class="fpath">${esc(o.path)}</span></div>`));
+      }
     }
     turn.appendChild(wrap);
   }
@@ -1424,17 +1432,46 @@ async function sendChat(presetText) {
     if (narrEl && !narrEl.textContent.trim()) narrEl.remove();
     narrEl = null;
   };
-  const opEl = (path) => {
-    let node = opEls.get(path);
-    if (node) return node;
+  const opsWrap = () => {
     closeThink();
     dropEmptyNarr();
     let wrap = turn.lastElementChild?.classList.contains('fileops') ? turn.lastElementChild : null;
     if (!wrap) { wrap = el('<div class="fileops"></div>'); turn.appendChild(wrap); }
+    return wrap;
+  };
+  const opEl = (path) => {
+    let node = opEls.get(path);
+    if (node) return node;
     node = el(`<div class="fileop"><span class="st"><span class="spinner"></span></span><span class="fpath">${esc(path)}</span><span class="fsize"></span></div>`);
-    wrap.appendChild(node);
+    opsWrap().appendChild(node);
     opEls.set(path, node);
     return node;
+  };
+  const runEls = [];
+  const addRunEl = (command) => {
+    const node = el(`<div class="runop">
+      <div class="runop-head"><span class="st"><span class="spinner"></span></span><span class="rcmd">$ ${esc(command)}</span></div>
+      <pre class="run-out hidden"></pre></div>`);
+    $('.runop-head', node).onclick = () => {
+      const out = $('.run-out', node);
+      if (out.textContent) out.classList.toggle('hidden');
+    };
+    opsWrap().appendChild(node);
+    runEls.push({ command, node, done: false });
+    return node;
+  };
+  const finishRunEl = (ev2) => {
+    const entry = runEls.find((r) => r.command === ev2.command && !r.done) || runEls.find((r) => !r.done);
+    const node = entry ? entry.node : addRunEl(ev2.command);
+    if (entry) entry.done = true;
+    node.classList.add('done');
+    if (!ev2.ok) node.classList.add('fail');
+    $('.st', node).innerHTML = ic(ev2.ok ? 'check' : 'x');
+    const out = $('.run-out', node);
+    if (ev2.output) {
+      out.textContent = ev2.output.replace(/\x1b\[[0-9;]*m/g, '');
+      if (!ev2.ok) out.classList.remove('hidden');
+    }
   };
 
   streamAbort = new AbortController();
@@ -1508,6 +1545,12 @@ async function sendChat(presetText) {
         $('.st', node).innerHTML = ic('x');
         break;
       }
+      case 'run':
+        addRunEl(ev.command);
+        break;
+      case 'runResult':
+        finishRunEl(ev);
+        break;
       case 'error':
         turn.appendChild(el(`<div class="err-line">${esc(ev.message)}</div>`));
         break;
@@ -1546,7 +1589,40 @@ function schedulePreview() {
 }
 function refreshPreview() {
   if (!current) return;
+  clearPreviewErrors();
   $('#previewFrame').src = `/preview/${current.id}/?t=${Date.now()}`;
+}
+
+// runtime errors reported by the bridge script injected into preview HTML
+let previewErrors = [];
+function wirePreviewErrors() {
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.replica !== 'preview-error' || !current) return;
+    const msg = `${d.message}${d.source ? ` (${d.source}${d.line ? ':' + d.line : ''})` : ''}`;
+    if (!previewErrors.includes(msg) && previewErrors.length < 8) {
+      previewErrors.push(msg);
+      renderPreviewErrBar();
+    }
+  });
+  $('#previewErrFix').onclick = () => {
+    if (!previewErrors.length || streaming || !current) return;
+    const msg = `The preview threw runtime error${previewErrors.length === 1 ? '' : 's'}:\n`
+      + previewErrors.map((m) => '- ' + m).join('\n')
+      + '\nFind the cause and fix it.';
+    clearPreviewErrors();
+    sendChat(msg);
+  };
+  $('#previewErrDismiss').onclick = clearPreviewErrors;
+}
+function renderPreviewErrBar() {
+  const n = previewErrors.length;
+  $('#previewErrBar').classList.toggle('hidden', n === 0);
+  if (n) $('#previewErrText').textContent = n === 1 ? previewErrors[0] : `${n} runtime errors in the preview`;
+}
+function clearPreviewErrors() {
+  previewErrors = [];
+  renderPreviewErrBar();
 }
 
 // ─────────────────────────────────────────────── code tab

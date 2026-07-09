@@ -100,7 +100,18 @@ The model is instructed to emit file operations in plain markers, never fenced:
 <<<END FILE>>>
 
 <<<DELETE: relative/path.ext>>>
+
+<<<RUN: node check.js>>>
 ```
+
+**The RUN loop.** `RUN` markers make the turn iterative: after the model's
+reply finishes, the requested commands execute (same allowlist and timeout as
+the console), their output is appended to the conversation as a `CONSOLE
+OUTPUT` message, and the model is called again so it can fix what it sees or
+confirm success. This bounds at `REPLICA_AGENT_MAX_ITERS` rounds (default 3)
+per user message. The agent also hears back from the preview: a bridge script
+injected into statically served preview HTML reports runtime errors to the
+workspace, which offers a one-click "Fix with Agent" message.
 
 Two streaming parsers process the token stream:
 

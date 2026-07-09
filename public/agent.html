@@ -282,7 +282,15 @@
             <button class="icon-btn ptab-refresh" id="btnRefresh" title="Refresh preview"><svg><use href="#i-refresh"/></svg></button>
           </div>
           <div class="panel-body">
-            <div class="ptab-view" id="tab-preview"><iframe id="previewFrame" title="Preview" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock"></iframe></div>
+            <div class="ptab-view" id="tab-preview">
+              <iframe id="previewFrame" title="Preview" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock"></iframe>
+              <div class="preview-errbar hidden" id="previewErrBar">
+                <svg><use href="#i-warn"/></svg>
+                <span id="previewErrText">Runtime error in the preview</span>
+                <button class="btn btn-secondary btn-sm" id="previewErrFix">Fix with Agent</button>
+                <button class="icon-btn" id="previewErrDismiss" title="Dismiss"><svg><use href="#i-x"/></svg></button>
+              </div>
+            </div>
             <div class="ptab-view hidden" id="tab-code">
               <div class="code-layout">
                 <div class="file-col">

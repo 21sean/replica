@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Agent RUN loop: `<<<RUN: command>>>` markers execute allowlisted commands
+  mid-turn and feed the output back to the model for up to
+  `REPLICA_AGENT_MAX_ITERS` rounds, so the agent can verify and fix its own
+  work; run results render in chat with expandable output
+- Preview error bridge: runtime errors in statically served previews report
+  back to the workspace with a one-click Fix with Agent prompt
 - Run button: start a long-lived dev server per project (`POST /run`, `/stop`,
   incremental `/logs`); the process gets a free port via `PORT` and the
   preview proxies to it once it accepts connections, so Node and Python

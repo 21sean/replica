@@ -18,6 +18,10 @@ alongside. No accounts, no credits, no cloud, no telemetry.
   complete files that are written to disk *as they stream*. Watch the app assemble
   itself, then keep chatting to iterate: the agent sees the current state of every
   project file each turn, including your manual edits.
+- **An agent that checks its work.** The model can run console commands mid-turn
+  (`<<<RUN: node check.js>>>`), read the output, and fix what it finds, up to
+  three rounds per request. Runtime errors in the preview surface as a
+  one-click "Fix with Agent" prompt.
 - **Zero npm dependencies.** The entire backend is plain Node.js (`http`, `fs`,
   `child_process`, built-in `fetch`). `git clone`, `node server.js`, done.
 - **Checkpoints on every turn.** Before the agent touches a file, the previous
@@ -90,6 +94,7 @@ Everything is environment-driven (see [`lib/config.js`](lib/config.js)):
 | `REPLICA_TEMPERATURE` | `0.4` | Sampling temperature for the agent. |
 | `REPLICA_NUM_CTX` | `32768` | Context window requested from Ollama. |
 | `REPLICA_CTX_RESERVE` | `1024` | Tokens reserved for the model's reply when trimming history to fit the window. |
+| `REPLICA_AGENT_MAX_ITERS` | `3` | Max model rounds per user message when the agent runs commands to verify its work. |
 | `REPLICA_KEEP_ALIVE` | `20m` | How long Ollama keeps the model loaded. |
 | `REPLICA_EXEC_TIMEOUT` | `60000` | Console command timeout (ms). |
 | `REPLICA_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
