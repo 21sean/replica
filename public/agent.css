@@ -605,6 +605,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .fileop.del .st { color: var(--red-soft); }
 .fileop.warn .st { color: var(--yellow); }
 .fileop .fpath { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fileop[title] { cursor: pointer; }
+.fileop[title]:hover { border-color: var(--border-3); }
 .fileop .fsize { margin-left: auto; font-size: 11px; color: var(--dim); font-family: var(--font); }
 .runop { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--r); overflow: hidden; }
 .runop-head { display: flex; align-items: center; gap: 9px; font-size: 12.5px; font-family: var(--mono); padding: 7px 11px; color: var(--muted); cursor: pointer; }
@@ -686,12 +688,30 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
   font-size: 13px; line-height: 1.55; color: var(--border-3); background: var(--bg-deep);
   overflow: hidden; user-select: none; border-right: 1px solid var(--border);
 }
-#editor {
-  flex: 1; background: var(--bg-deep); border: none; border-radius: 0; resize: none; outline: none;
+.editor-stack { position: relative; flex: 1; min-width: 0; }
+/* the highlight layer sits under a transparent-text textarea; both must use
+   identical font metrics and padding or the caret drifts off the glyphs */
+.hl-layer {
+  position: absolute; inset: 0; margin: 0; overflow: hidden; pointer-events: none;
   font-family: var(--mono); font-size: 13px; line-height: 1.55; padding: 12px 14px;
-  color: #DBE2EA; white-space: pre; overflow: auto;
+  color: #DBE2EA; background: var(--bg-deep); white-space: pre;
 }
-#editor:disabled { color: var(--dim); }
+.hl-layer code { font-family: inherit; display: block; }
+#editor {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: transparent; border: none; border-radius: 0; resize: none; outline: none;
+  font-family: var(--mono); font-size: 13px; line-height: 1.55; padding: 12px 14px;
+  color: transparent; caret-color: var(--text); white-space: pre; overflow: auto;
+}
+#editor::selection { background: rgba(0, 121, 242, .35); }
+#editor::placeholder { color: var(--dim); }
+#editor.streaming { caret-color: transparent; }
+.tk-com { color: #6B7A88; font-style: italic; }
+.tk-str { color: #7EC699; }
+.tk-num { color: #E5B567; }
+.tk-kw { color: #C792EA; }
+.tk-attr { color: #8FD0FF; }
+.tk-tag { color: #F07178; }
 
 /* console tab */
 .console-out {

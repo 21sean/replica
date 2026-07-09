@@ -80,7 +80,7 @@ model works. Files are written to disk the moment their block completes.
 | `thinking` | `{text}` | Reasoning tokens (thinking-capable models) |
 | `token` | `{text}` | Narration addressed to the user |
 | `fileStart` | `{path}` | A file block began |
-| `fileChunk` | `{path, bytes}` | Progress inside a file block |
+| `fileChunk` | `{path, bytes, text}` | Progress inside a file block; `text` is the newly streamed slice |
 | `fileDone` | `{path, bytes, truncated}` | File written to disk |
 | `deleted` | `{path}` | File removed |
 | `run` | `{command}` | The agent requested a console command |

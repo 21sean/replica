@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Syntax-highlighted editor: a zero-dependency tokenizer (JS/TS, CSS, HTML,
+  JSON, Python) rendered under a transparent textarea, so editing behavior is
+  unchanged; `fileChunk` chat events now carry the streamed text and the Code
+  tab shows files assembling live as the agent writes them
 - Agent RUN loop: `<<<RUN: command>>>` markers execute allowlisted commands
   mid-turn and feed the output back to the model for up to
   `REPLICA_AGENT_MAX_ITERS` rounds, so the agent can verify and fix its own

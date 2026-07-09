@@ -30,8 +30,9 @@ alongside. No accounts, no credits, no cloud, no telemetry.
 - **Everything on your machine.** Projects are plain folders you can open in any
   editor. Generated apps use no CDNs and no external calls; pull the network cable and
   everything still runs.
-- **Full workspace UI.** Live preview, file-tree code editor (Ctrl+S saves), and a
-  console for running `node` / `python` scripts inside the project.
+- **Full workspace UI.** Live preview, a syntax-highlighted code editor (Ctrl+S
+  saves) that shows files streaming in as the agent writes them, and a console
+  for running `node` / `python` scripts inside the project.
 - **Real server apps, not just static sites.** Press Run and Replica starts your
   project's dev server on a free port, streams its logs to the console, and
   proxies the preview to it, Node and Python backends included.

@@ -310,7 +310,10 @@
                   </div>
                   <div class="editor-wrap">
                     <pre class="line-nums" id="lineNums">1</pre>
-                    <textarea id="editor" spellcheck="false" wrap="off" disabled placeholder="Select a file from the tree"></textarea>
+                    <div class="editor-stack">
+                      <pre class="hl-layer" id="hlLayer" aria-hidden="true"><code id="hlCode"></code></pre>
+                      <textarea id="editor" spellcheck="false" wrap="off" disabled placeholder="Select a file from the tree"></textarea>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -387,7 +390,7 @@ Press Run in the toolbar to start a server; its logs stream here.</span></div>
       <p><b>Everything is local.</b> The Agent is whatever Ollama model you pick. Projects are plain folders in <code>replica/projects/</code> on your disk.</p>
       <p><b>Building.</b> Describe what you want on the Home screen. The Agent plans, then writes real files, and you will see each one land with a check mark. The preview refreshes automatically.</p>
       <p><b>Iterating.</b> Keep chatting in the project: make the header sticky, add dark mode, fix that bug. The Agent sees your current files each turn, including manual edits.</p>
-      <p><b>Code tab.</b> Full editor over the project files. <code>Ctrl+S</code> saves. Your edits become part of the Agent's context.</p>
+      <p><b>Code tab.</b> Syntax-highlighted editor over the project files. <code>Ctrl+S</code> saves, and files stream into view live while the Agent writes them. Your edits become part of the Agent's context.</p>
       <p><b>Console tab.</b> Run <code>node file.js</code> or <code>python file.py</code> inside the project folder, with a 60 second limit.</p>
       <p><b>Server apps.</b> Press <b>Run</b> in the toolbar to start a dev server. It gets a free port in <code>PORT</code>, its logs stream to the Console tab, and the preview proxies to it while it runs.</p>
       <p><b>Models.</b> Bigger models build better apps. Thinking models show their reasoning, and you can collapse it with a click. The first response after idle can take a while as the model loads into memory.</p>
@@ -410,6 +413,7 @@ Press Run in the toolbar to start a server; its logs stream here.</span></div>
 <div class="toasts" id="toasts"></div>
 <div id="dlgHost"></div>
 
+<script src="/highlight.js"></script>
 <script src="/agent.js"></script>
 </body>
 </html>

@@ -1196,6 +1196,17 @@ function renderCmdk() {
 }
 
 // ─────────────────────────────────────────────── workspace (IDE)
+function activateTab(name) {
+  $$('.ptab').forEach((x) => x.classList.toggle('active', x.dataset.tab === name));
+  $$('.ptab-view').forEach((v) => v.classList.add('hidden'));
+  $('#tab-' + name).classList.remove('hidden');
+  if (name === 'code') loadTree();
+  if (name === 'console') $('#consoleCmd').focus();
+}
+function isCodeTabActive() {
+  return !$('#tab-code').classList.contains('hidden');
+}
+
 function wireWorkspace() {
   $('#wsBack').onclick = () => { current = null; clearTimeout(runPollTimer); showView('projects'); };
   $('#btnOpenTab').onclick = () => { if (current) window.open(`/preview/${current.id}/`, '_blank'); };
@@ -1216,14 +1227,7 @@ function wireWorkspace() {
     align: 'end',
   });
 
-  $$('.ptab').forEach((t) => t.addEventListener('click', () => {
-    $$('.ptab').forEach((x) => x.classList.remove('active'));
-    t.classList.add('active');
-    $$('.ptab-view').forEach((v) => v.classList.add('hidden'));
-    $('#tab-' + t.dataset.tab).classList.remove('hidden');
-    if (t.dataset.tab === 'code') loadTree();
-    if (t.dataset.tab === 'console') $('#consoleCmd').focus();
-  }));
+  $$('.ptab').forEach((t) => t.addEventListener('click', () => activateTab(t.dataset.tab)));
 
   const ct = $('#chatText');
   ct.addEventListener('input', () => { autosize(ct); syncChatSend(); });
@@ -1235,8 +1239,8 @@ function wireWorkspace() {
   syncChatSend();
 
   const ed = $('#editor');
-  ed.addEventListener('input', () => { markDirty(true); renderLineNums(); });
-  ed.addEventListener('scroll', () => { $('#lineNums').scrollTop = ed.scrollTop; });
+  ed.addEventListener('input', () => { markDirty(true); renderLineNums(); renderHighlight(); });
+  ed.addEventListener('scroll', () => { $('#lineNums').scrollTop = ed.scrollTop; syncHlScroll(); });
   ed.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -1313,8 +1317,10 @@ function renderHistoryTurn(content, turnId) {
         wrap.appendChild(el(`<div class="runop done${o.code === 0 ? '' : ' fail'}">
           <div class="runop-head"><span class="st">${ic(o.code === 0 ? 'check' : 'x')}</span><span class="rcmd">$ ${esc(o.path)}</span></div></div>`));
       } else {
-        wrap.appendChild(el(`<div class="fileop done${o.del ? ' del' : ''}">
-          <span class="st">${ic(o.del ? 'x' : 'check')}</span><span class="fpath">${esc(o.path)}</span></div>`));
+        const row = el(`<div class="fileop done${o.del ? ' del' : ''}"${o.del ? '' : ' title="Open in the Code tab"'}>
+          <span class="st">${ic(o.del ? 'x' : 'check')}</span><span class="fpath">${esc(o.path)}</span></div>`);
+        if (!o.del) row.onclick = () => { activateTab('code'); loadFile(o.path); };
+        wrap.appendChild(row);
       }
     }
     turn.appendChild(wrap);
@@ -1442,7 +1448,12 @@ async function sendChat(presetText) {
   const opEl = (path) => {
     let node = opEls.get(path);
     if (node) return node;
-    node = el(`<div class="fileop"><span class="st"><span class="spinner"></span></span><span class="fpath">${esc(path)}</span><span class="fsize"></span></div>`);
+    node = el(`<div class="fileop" title="Open in the Code tab"><span class="st"><span class="spinner"></span></span><span class="fpath">${esc(path)}</span><span class="fsize"></span></div>`);
+    node.onclick = () => {
+      activateTab('code');
+      if (streamBufs.has(path)) beginLiveView(path);
+      else loadFile(path);
+    };
     opsWrap().appendChild(node);
     opEls.set(path, node);
     return node;
@@ -1522,10 +1533,18 @@ async function sendChat(presetText) {
         break;
       case 'fileStart':
         opEl(ev.path);
+        streamBufs.set(ev.path, '');
+        if (isCodeTabActive() && !editorDirty) beginLiveView(ev.path);
         break;
       case 'fileChunk': {
         const node = opEl(ev.path);
         $('.fsize', node).textContent = fmtBytes(ev.bytes);
+        if (typeof ev.text === 'string') {
+          const prev = streamBufs.get(ev.path) ?? '';
+          // the marker's trailing newline arrives with the first chunk
+          streamBufs.set(ev.path, prev ? prev + ev.text : ev.text.replace(/^\r?\n/, ''));
+          updateLiveView(ev.path);
+        }
         break;
       }
       case 'fileDone': {
@@ -1535,6 +1554,9 @@ async function sendChat(presetText) {
         if (ev.truncated) node.classList.add('warn');
         $('.st', node).innerHTML = ic(ev.truncated ? 'warn' : 'check');
         $('.fsize', node).textContent = fmtBytes(ev.bytes);
+        streamBufs.delete(ev.path);
+        endLiveView(ev.path);
+        if (isCodeTabActive()) loadTree();
         schedulePreview();
         break;
       }
@@ -1568,6 +1590,9 @@ async function sendChat(presetText) {
   status.remove();
   streaming = false;
   streamAbort = null;
+  // an aborted turn can leave a live view mid-file; settle it from disk
+  streamBufs.clear();
+  if (livePath) endLiveView(livePath);
   $('#chatSend').classList.remove('hidden');
   $('#chatStop').classList.add('hidden');
   syncChatSend();
@@ -1672,6 +1697,8 @@ async function loadFile(path, { force = false } = {}) {
     return;
   }
   openFile = path;
+  livePath = null;
+  $('#editor').classList.remove('streaming');
   $('#editor').value = j.content;
   $('#editor').disabled = false;
   $('#btnSaveFile').disabled = false;
@@ -1679,11 +1706,14 @@ async function loadFile(path, { force = false } = {}) {
   $('#editorPath').textContent = path;
   markDirty(false);
   renderLineNums();
+  renderHighlight();
   $$('.ft-file').forEach((b) => b.classList.toggle('active', b.title === path));
 }
 
 function closeEditor() {
   openFile = null;
+  livePath = null;
+  $('#editor').classList.remove('streaming');
   $('#editor').value = '';
   $('#editor').disabled = true;
   $('#btnSaveFile').disabled = true;
@@ -1691,12 +1721,75 @@ function closeEditor() {
   $('#editorPath').textContent = 'select a file';
   markDirty(false);
   renderLineNums();
+  renderHighlight();
   $$('.ft-file').forEach((b) => b.classList.remove('active'));
 }
 
 function renderLineNums() {
   const n = $('#editor').value.split('\n').length;
   $('#lineNums').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
+}
+
+// ─────────────────────────────────────────────── syntax highlighting
+function editorLang() {
+  const name = livePath || openFile || '';
+  return name.split('.').pop().toLowerCase();
+}
+let hlQueued = false;
+function renderHighlight() {
+  if (hlQueued) return;
+  hlQueued = true;
+  requestAnimationFrame(() => {
+    hlQueued = false;
+    // trailing newline so the final line keeps its height in the layer
+    $('#hlCode').innerHTML = window.replicaHighlight($('#editor').value + '\n', editorLang());
+    syncHlScroll();
+  });
+}
+function syncHlScroll() {
+  const ed = $('#editor');
+  const hl = $('#hlLayer');
+  hl.scrollTop = ed.scrollTop;
+  hl.scrollLeft = ed.scrollLeft;
+}
+
+// ─────────────────────────────────────────────── live code streaming
+// While the agent writes a file, its bytes accumulate here and the Code tab
+// can watch the file assemble in the (readonly) editor.
+const streamBufs = new Map();
+let livePath = null;
+
+function beginLiveView(path) {
+  if (editorDirty) return;  // never clobber unsaved manual edits
+  livePath = path;
+  openFile = null;
+  const ed = $('#editor');
+  ed.value = streamBufs.get(path) || '';
+  ed.disabled = true;
+  ed.classList.add('streaming');
+  $('#editorPath').textContent = `${path} (writing)`;
+  $('#btnSaveFile').disabled = true;
+  $('#btnDeleteFile').disabled = true;
+  markDirty(false);
+  renderLineNums();
+  renderHighlight();
+  $$('.ft-file').forEach((b) => b.classList.toggle('active', b.title === path));
+}
+
+function updateLiveView(path) {
+  if (livePath !== path) return;
+  const ed = $('#editor');
+  ed.value = streamBufs.get(path) || '';
+  renderLineNums();
+  renderHighlight();
+  ed.scrollTop = ed.scrollHeight;
+}
+
+function endLiveView(path) {
+  if (livePath !== path) return;
+  livePath = null;
+  $('#editor').classList.remove('streaming');
+  loadFile(path, { force: true });
 }
 
 function markDirty(v) {

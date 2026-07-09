@@ -97,6 +97,30 @@ test('file content containing angle brackets and partial markers survives', () =
   assert.equal(ev.files[0].content, body);
 });
 
+test('fileChunk events carry the streamed text deltas', () => {
+  const deltas = [];
+  const files = [];
+  const parser = createAgentParser({
+    narration: () => {},
+    fileStart: () => {},
+    fileChunk: (p, bytes, text) => deltas.push(text),
+    fileDone: (p, content) => files.push(content),
+    del: () => {},
+    run: () => {},
+  });
+  const body = Array.from({ length: 60 }, (_, i) => `line ${i} of the generated file`).join('\n');
+  const src = `<<<FILE: big.js>>>\n${body}\n<<<END FILE>>>`;
+  for (let i = 0; i < src.length; i += 24) parser.feed(src.slice(i, i + 24));
+  parser.finish();
+
+  assert.equal(files.length, 1);
+  assert.equal(files[0], body);
+  assert.ok(deltas.length > 5, 'streams multiple chunks');
+  const streamed = deltas.join('').replace(/^\r?\n/, '');
+  assert.ok(body.startsWith(streamed), 'deltas are a prefix of the final content');
+  assert.ok(streamed.length >= body.length - 40, 'nearly all content streams before the end marker');
+});
+
 test('parses RUN markers between files and narration', () => {
   const { ev, parser, narrationText } = collector();
   const src =
